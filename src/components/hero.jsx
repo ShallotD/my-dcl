@@ -1,20 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FileText,
   Clock,
-  AlertTriangle,
   CheckCircle,
-  PlusCircle,
-  XCircle,
-  Check,
   ClipboardList,
   Users,
+  PlusCircle,
 } from "lucide-react";
 
-const Hero = () => {
-  const [activeTab, setActiveTab] = useState("active");
-  const [showModal, setShowModal] = useState(false);
-
+const Hero = ({
+  showModal,
+  setShowModal,
+  activeTab,
+  setActiveTab,
+  defaultTab,
+}) => {
   const [selectedChecklist, setSelectedChecklist] = useState(null);
 
   const NCBA_BLUE = "#3A2A82";
@@ -89,6 +89,13 @@ const Hero = () => {
     }
   };
 
+  // Use defaultTab to set active tab on mount or when defaultTab prop changes
+  useEffect(() => {
+    if (defaultTab && defaultTab !== activeTab) {
+      setActiveTab(defaultTab);
+    }
+  }, [defaultTab, activeTab, setActiveTab]);
+
   return (
     <section className="bg-[#F4F7FC] px-6 py-6 rounded-xl shadow-sm animate-fadeIn">
       <h2 className="text-2xl font-bold text-gray-900 mb-4">
@@ -101,13 +108,10 @@ const Hero = () => {
           <div
             key={card.title}
             className="
-              backdrop-blur-xl bg-white/60 
-              border border-white/40 
-              shadow-lg 
-              rounded-xl 
-              p-6 
-              transition-all 
-              hover:shadow-xl hover:bg-white/70
+              backdrop-blur-xl bg-white/60
+              border border-white/40
+              shadow-lg rounded-xl p-6
+              transition-all hover:shadow-xl hover:bg-white/70
             "
           >
             <div className="flex items-center justify-between mb-3">
@@ -119,7 +123,7 @@ const Hero = () => {
         ))}
       </div>
 
-      {/* Create New Checklist */}
+      {/* Create New Document Checklist */}
       <div className="mt-8">
         <button
           onClick={() => setShowModal(true)}
@@ -160,9 +164,8 @@ const Hero = () => {
         })}
       </div>
 
-      {/* TAB CONTENT */}
+      {/* Tab Content */}
       <div className="mt-8">
-        {/* Active Tab */}
         {activeTab === "active" && (
           <div className="space-y-8">
             <div>
@@ -170,27 +173,19 @@ const Hero = () => {
                 <Users size={20} className="text-blue-600" />
                 Pending RM Submissions
               </h3>
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
                 <div className="bg-white border rounded-xl p-5 shadow-sm">
                   <h4 className="font-semibold text-gray-900">XYZ Holdings</h4>
-                  <p className="text-gray-700 text-sm mt-1">
-                    RM: Kelvin Otieno
-                  </p>
-
+                  <p className="text-gray-700 text-sm mt-1">RM: Kelvin Otieno</p>
                   <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                     View Checklist
                   </button>
                 </div>
-
                 <div className="bg-white border rounded-xl p-5 shadow-sm">
                   <h4 className="font-semibold text-gray-900">
                     BlueWave Industries
                   </h4>
-                  <p className="text-gray-700 text-sm mt-1">
-                    RM: Sharon Muli
-                  </p>
-
+                  <p className="text-gray-700 text-sm mt-1">RM: Sharon Muli</p>
                   <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
                     View Checklist
                   </button>
@@ -217,13 +212,14 @@ const Hero = () => {
                       RM: {item.rm} • Submitted: {item.submitted}
                     </p>
                   </div>
-
                   <span className="bg-blue-100 text-blue-700 border border-blue-300 px-3 py-1 rounded-full text-xs font-semibold">
-                    Pending Review
+                    {item.status}
                   </span>
                 </div>
-
-                <button className="mt-4 bg-[#3A2A82] hover:bg-[#2A1F63] text-white px-5 py-2.5 rounded-lg font-medium shadow">
+                <button
+                  onClick={() => openChecklistDetails(item.id)}
+                  className="mt-4 bg-[#3A2A82] hover:bg-[#2A1F63] text-white px-5 py-2.5 rounded-lg font-medium shadow"
+                >
                   Review Checklist
                 </button>
               </div>
@@ -231,7 +227,6 @@ const Hero = () => {
           </div>
         )}
 
-        {/* DEFERRALS TAB */}
         {activeTab === "deferrals" && (
           <div className="space-y-6 mt-4">
             {deferrals.map((item) => (
@@ -248,7 +243,6 @@ const Hero = () => {
                       Client: {item.client} • RM: {item.rm}
                     </p>
                   </div>
-
                   <span className="bg-yellow-100 text-yellow-700 border border-yellow-300 px-3 py-1 rounded-full text-xs font-semibold">
                     Pending Review
                   </span>
@@ -273,15 +267,12 @@ const Hero = () => {
           </div>
         )}
 
-        {/* Completed Tab */}
         {activeTab === "completed" && (
           <div className="bg-[#F2FCF6] border border-green-300 rounded-xl p-6 shadow-sm relative">
             <h3 className="text-xl font-semibold text-gray-800">
               XYZ Enterprises
             </h3>
-            <p className="text-gray-600 text-sm mt-1">
-              Completed on 2024-11-05
-            </p>
+            <p className="text-gray-600 text-sm mt-1">Completed on 2024-11-05</p>
 
             <span className="absolute top-6 right-6 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
               Completed
@@ -295,102 +286,44 @@ const Hero = () => {
         )}
       </div>
 
-      {/* DEFERRAL DETAILS MODAL */}
+      {/* Modals … same as before */}
       {selectedChecklist && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-[90%] max-w-lg p-6 rounded-xl shadow-xl animate-fadeIn">
-            <h2 className="text-xl font-semibold text-gray-900">
-              Deferral Details
-            </h2>
-
+            <h2 className="text-xl font-semibold text-gray-900">Deferral Details</h2>
             <div className="mt-4 space-y-2 text-gray-800 text-sm">
-              <p>
-                <strong>Checklist ID:</strong> {selectedChecklist.id}
-              </p>
-              <p>
-                <strong>Client Name:</strong> {selectedChecklist.customer}
-              </p>
-              <p>
-                <strong>Relationship Manager:</strong>{" "}
-                {selectedChecklist.rm}
-              </p>
-
-              <p>
-                <strong>Deferred Document:</strong>
-                {deferrals.find((d) => d.linkedDCL === selectedChecklist.id)
-                  ?.title}
-              </p>
-
-              <p>
-                <strong>Requested On:</strong>
-                {deferrals.find((d) => d.linkedDCL === selectedChecklist.id)
-                  ?.requestedDate}
-              </p>
-
+              <p><strong>Checklist ID:</strong> {selectedChecklist.id}</p>
+              <p><strong>Client Name:</strong> {selectedChecklist.customer}</p>
+              <p><strong>Relationship Manager:</strong> {selectedChecklist.rm}</p>
+              <p><strong>Deferred Document:</strong> {deferrals.find((d) => d.linkedDCL === selectedChecklist.id)?.title}</p>
+              <p><strong>Requested On:</strong> {deferrals.find((d) => d.linkedDCL === selectedChecklist.id)?.requestedDate}</p>
               <div className="mt-3">
                 <p className="font-semibold">Reason for Deferral:</p>
-                <p className="mt-1 bg-gray-100 p-3 rounded-lg">
-                  {
-                    deferrals.find(
-                      (d) => d.linkedDCL === selectedChecklist.id
-                    )?.reason
-                  }
-                </p>
+                <p className="mt-1 bg-gray-100 p-3 rounded-lg">{deferrals.find((d) => d.linkedDCL === selectedChecklist.id)?.reason}</p>
               </div>
-
-              <p className="mt-2">
-                <strong>Status:</strong> Pending RM Action
-              </p>
+              <p className="mt-2"><strong>Status:</strong> Pending RM Action</p>
             </div>
-
             <div className="flex justify-end mt-6">
-              <button
-                onClick={() => setSelectedChecklist(null)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-              >
-                Close
-              </button>
+              <button onClick={() => setSelectedChecklist(null)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Close</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Create New Checklist Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-[90%] max-w-lg p-6 rounded-xl shadow-xl animate-fadeIn">
             <h2 className="text-xl font-semibold text-gray-900">
               Create New Document Checklist
             </h2>
-
             <div className="mt-4 space-y-4">
-              <input
-                type="text"
-                placeholder="Client Name"
-                className="w-full p-3 border rounded-lg"
-              />
-              <input
-                type="text"
-                placeholder="Relationship Manager"
-                className="w-full p-3 border rounded-lg"
-              />
-              <textarea
-                placeholder="Description"
-                className="w-full p-3 border rounded-lg h-24"
-              />
+              <input type="text" placeholder="Client Name" className="w-full p-3 border rounded-lg" />
+              <input type="text" placeholder="Relationship Manager" className="w-full p-3 border rounded-lg" />
+              <textarea placeholder="Description" className="w-full p-3 border rounded-lg h-24"></textarea>
             </div>
-
             <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-
-              <button className="px-4 py-2 bg-[#3A2A82] text-white rounded-lg hover:bg-[#2A1F63]">
-                Save
-              </button>
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Cancel</button>
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 bg-[#3A2A82] text-white rounded-lg hover:bg-[#2A1F63]">Save</button>
             </div>
           </div>
         </div>
@@ -410,3 +343,10 @@ const Hero = () => {
 };
 
 export default Hero;
+
+
+
+
+
+
+

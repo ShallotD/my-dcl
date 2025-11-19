@@ -1,20 +1,73 @@
-import React from "react";
+import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
-
 import LoginPage from "./pages/LoginPage";
 import Home from "./pages/home";
-import Hero from "./components/hero";   // <-- ADD THIS
+import Hero from "./components/hero";
+import MainLayout from "./components/MainLayout";
 
 export default function App() {
+  const [showModal, setShowModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("active");
+
   return (
     <Routes>
+      {/* Route without sidebar */}
       <Route path="/" element={<LoginPage />} />
-      <Route path="/home" element={<Home />} />
 
-      {/* NEW ROUTE FOR HERO */}
-      <Route path="/hero" element={<Hero />} />
+      {/* Routes with sidebar layout */}
+      <Route
+        element={
+          <MainLayout
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            showModal={showModal}
+            setShowModal={setShowModal}
+          />
+        }
+      >
+        <Route path="/home" element={<Home />} />
+
+        <Route
+          path="/hero"
+          element={
+            <Hero
+              showModal={showModal}
+              setShowModal={setShowModal}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+          }
+        />
+
+        <Route
+          path="/deferrals"
+          element={
+            <Hero
+              showModal={showModal}
+              setShowModal={setShowModal}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              defaultTab="deferrals"
+            />
+          }
+        />
+
+        <Route
+          path="/completed"
+          element={
+            <Hero
+              showModal={showModal}
+              setShowModal={setShowModal}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              defaultTab="completed"
+            />
+          }
+        />
+      </Route>
     </Routes>
   );
 }
+
 
 
