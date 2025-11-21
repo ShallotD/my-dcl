@@ -59,29 +59,6 @@ const Hero = ({
     },
   ];
 
-  const dashboardCards = [
-    {
-      title: "Checklists Created",
-      value: 14,
-      icon: <FileText size={26} className="text-[#3A2A82]" />,
-    },
-    {
-      title: "Pending RM Submissions",
-      value: 4,
-      icon: <Users size={26} className="text-blue-500" />,
-    },
-    {
-      title: "Pending Reviews",
-      value: dclList.length,
-      icon: <Clock size={26} className="text-orange-500" />,
-    },
-    {
-      title: "Completed Checklists",
-      value: 9,
-      icon: <CheckCircle size={26} className="text-green-600" />,
-    },
-  ];
-
   const openChecklistDetails = (linkedDCL) => {
     const checklist = dclList.find((c) => c.id === linkedDCL);
     if (checklist) {
@@ -89,7 +66,6 @@ const Hero = ({
     }
   };
 
-  // Use defaultTab to set active tab on mount or when defaultTab prop changes
   useEffect(() => {
     if (defaultTab && defaultTab !== activeTab) {
       setActiveTab(defaultTab);
@@ -102,70 +78,12 @@ const Hero = ({
         Credit Officer Dashboard
       </h2>
 
-      {/* Dashboard Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
-        {dashboardCards.map((card) => (
-          <div
-            key={card.title}
-            className="
-              backdrop-blur-xl bg-white/60
-              border border-white/40
-              shadow-lg rounded-xl p-6
-              transition-all hover:shadow-xl hover:bg-white/70
-            "
-          >
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-gray-700 font-semibold">{card.title}</p>
-              {card.icon}
-            </div>
-            <p className="text-3xl font-bold text-gray-800">{card.value}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Create New Document Checklist */}
-      <div className="mt-8">
-        <button
-          onClick={() => setShowModal(true)}
-          className="px-5 py-2.5 rounded-lg text-white shadow-md font-medium flex items-center gap-2 transition"
-          style={{ backgroundColor: NCBA_BLUE }}
-        >
-          <PlusCircle size={18} />
-          Create New Document Checklist
-        </button>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex items-center space-x-3 mt-8">
-        {[
-          { id: "active", label: "Active" },
-          { id: "deferrals", label: "Deferrals", badge: deferrals.length },
-          { id: "completed", label: "Completed" },
-        ].map((tab) => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium border transition-all ${
-                isActive
-                  ? "bg-[#3A2A82] text-white border-[#3A2A82]"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-100"
-              }`}
-            >
-              {tab.label}
-              {tab.badge && (
-                <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
-                  {tab.badge}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* Tabs removed — sidebar now controls everything */}
+      <div className="mt-4"></div>
 
       {/* Tab Content */}
       <div className="mt-8">
+        {/* ACTIVE TAB */}
         {activeTab === "active" && (
           <div className="space-y-8">
             <div>
@@ -227,6 +145,7 @@ const Hero = ({
           </div>
         )}
 
+        {/* DEFERRALS TAB */}
         {activeTab === "deferrals" && (
           <div className="space-y-6 mt-4">
             {deferrals.map((item) => (
@@ -267,6 +186,7 @@ const Hero = ({
           </div>
         )}
 
+        {/* COMPLETED TAB */}
         {activeTab === "completed" && (
           <div className="bg-[#F2FCF6] border border-green-300 rounded-xl p-6 shadow-sm relative">
             <h3 className="text-xl font-semibold text-gray-800">
@@ -286,7 +206,7 @@ const Hero = ({
         )}
       </div>
 
-      {/* Modals … same as before */}
+      {/* Checklist Detail Modal */}
       {selectedChecklist && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-[90%] max-w-lg p-6 rounded-xl shadow-xl animate-fadeIn">
@@ -299,17 +219,25 @@ const Hero = ({
               <p><strong>Requested On:</strong> {deferrals.find((d) => d.linkedDCL === selectedChecklist.id)?.requestedDate}</p>
               <div className="mt-3">
                 <p className="font-semibold">Reason for Deferral:</p>
-                <p className="mt-1 bg-gray-100 p-3 rounded-lg">{deferrals.find((d) => d.linkedDCL === selectedChecklist.id)?.reason}</p>
+                <p className="mt-1 bg-gray-100 p-3 rounded-lg">
+                  {deferrals.find((d) => d.linkedDCL === selectedChecklist.id)?.reason}
+                </p>
               </div>
               <p className="mt-2"><strong>Status:</strong> Pending RM Action</p>
             </div>
             <div className="flex justify-end mt-6">
-              <button onClick={() => setSelectedChecklist(null)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Close</button>
+              <button
+                onClick={() => setSelectedChecklist(null)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Create New Checklist Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white w-[90%] max-w-lg p-6 rounded-xl shadow-xl animate-fadeIn">
@@ -322,8 +250,18 @@ const Hero = ({
               <textarea placeholder="Description" className="w-full p-3 border rounded-lg h-24"></textarea>
             </div>
             <div className="flex justify-end gap-3 mt-6">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">Cancel</button>
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 bg-[#3A2A82] text-white rounded-lg hover:bg-[#2A1F63]">Save</button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-[#3A2A82] text-white rounded-lg hover:bg-[#2A1F63]"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>
@@ -343,10 +281,3 @@ const Hero = ({
 };
 
 export default Hero;
-
-
-
-
-
-
-

@@ -4,6 +4,9 @@ import LoginPage from "./pages/LoginPage";
 import Home from "./pages/home";
 import Hero from "./components/hero";
 import MainLayout from "./components/MainLayout";
+import Dashboard from "./pages/Dashboard";
+import MyQueue from "./pages/MyQueue";
+
 
 export default function App() {
   const [showModal, setShowModal] = useState(false);
@@ -25,6 +28,11 @@ export default function App() {
           />
         }
       >
+        {/* New Dashboard Route */}
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route path="/myqueue" element={<MyQueue />} />
+   
         <Route path="/home" element={<Home />} />
 
         <Route
@@ -38,6 +46,20 @@ export default function App() {
             />
           }
         />
+
+        <Route
+          path="/active"
+          element={
+            <Hero
+              showModal={showModal}
+              setShowModal={setShowModal}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              defaultTab="active"
+            />
+          }
+        />
+
 
         <Route
           path="/deferrals"

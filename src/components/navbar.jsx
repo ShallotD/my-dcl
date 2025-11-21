@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Search } from "lucide-react";
 
-export default function Navbar() {
+const Navbar = ({ onLogout }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <nav className="flex justify-between items-center p-4 bg-[#17A2B8] text-white shadow-md relative">
+    <nav className="flex justify-between items-center p-4 bg-[#17A2B8] text-white shadow-md relative w-full">
       {/* Left: User Name */}
       <div className="flex items-center gap-2 font-semibold text-lg">
         👤 John Doe
@@ -23,10 +23,24 @@ export default function Navbar() {
         />
       </div>
 
-      {/* Right: Logout Button */}
-      <button className="bg-[#e29700] text-[#333333] px-4 py-2 rounded-lg font-medium hover:bg-yellow-500 transition">
-        🔒 Logout
-      </button>
+      {/* Right: Go For It & Logout Buttons */}
+      <div className="flex items-center gap-3">
+        <button className="bg-yellow-400 px-3 py-1 rounded font-semibold hover:bg-yellow-500 transition cursor-pointer">
+          Go For It
+        </button>
+
+        <button
+          onClick={() => {
+            alert("Logging out");
+            if (onLogout) onLogout();
+          }}
+          className="bg-[#e29700] text-[#333333] px-4 py-2 rounded-lg font-medium hover:bg-yellow-500 transition"
+        >
+          🔒 Logout
+        </button>
+      </div>
     </nav>
   );
-}
+};
+
+export default Navbar;

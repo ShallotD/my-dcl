@@ -22,15 +22,12 @@ const Sidebar = () => {
     <div className="fixed top-0 left-0 h-screen w-64 bg-[#3A2A82] text-white p-4 flex flex-col justify-between">
       {/* Logo / Brand */}
       <div>
-        <h2 className="text-2xl font-bold mb-4">BankFlow</h2>
-        <div className="text-sm mb-6">
-          <p>michael m n</p>
-          <p className="text-gray-300">Sales Officer</p>
-        </div>
+        <h2 className="text-2xl font-bold mb-4">CO Dashboard</h2>
+        
 
         {/* Navigation */}
         <nav className="space-y-4">
-          <NavLink to="/home" className={linkClass}>
+          <NavLink to="/dashboard" className={linkClass}>
             <Home size={12} className="text-gray-200" />
             Dashboard
           </NavLink>
@@ -41,12 +38,12 @@ const Sidebar = () => {
             Create New DCL
           </NavLink>
 
-          <NavLink to="/accounts" className={linkClass}>
+          <NavLink to="/myqueue" className={linkClass}>
             <Users size={12} className="text-gray-200" />
-            View Accounts
+            My Queue
           </NavLink>
 
-          <NavLink to="/active-checklists" className={linkClass}>
+          <NavLink to="/active" className={linkClass}>
             <ListCheck size={12} className="text-gray-200" />
             Active 
           </NavLink>
@@ -56,7 +53,7 @@ const Sidebar = () => {
             Deferrals
           </NavLink>
 
-          <NavLink to="/completed-checklists" className={linkClass}>
+          <NavLink to="/completed" className={linkClass}>
             <CheckCircle size={12} className="text-gray-200" />
             Completed 
           </NavLink>
