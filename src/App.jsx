@@ -10,7 +10,7 @@ import CreateDCL from "./pages/CreateDCL";
 import Deferrals from "./pages/Deferrals";
 import Completed from "./pages/Completed";
 import Active from "./pages/Active";
-
+import Reports from "./pages/Reports";
 
 export default function App() {
   const [showModal, setShowModal] = useState(false);
@@ -39,12 +39,15 @@ export default function App() {
 
         <Route path="/checklists" element={<CreateDCL />} />
 
-        <Route path="/deferrals" element={<Deferrals />} />  
+        <Route path="/deferrals" element={<Deferrals />} />
 
         <Route path="/completed" element={<Completed />} />
 
-        <Route path="/active" element={<Active />} /> 
-   
+        <Route path="/active" element={<Active />} />
+
+        <Route path="/reports" element={<Reports />} />
+
+
         <Route path="/home" element={<Home />} />
 
         <Route

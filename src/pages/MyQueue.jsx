@@ -253,7 +253,7 @@ function MyQueue() {
 
         {/* Title */}
         <h2 className="text-xl font-bold text-[#0052B1] mb-4">
-          Loan Queue
+          My Queue
         </h2>
 
         {/* SEARCH BAR */}

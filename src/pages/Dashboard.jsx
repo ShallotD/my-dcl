@@ -1,14 +1,9 @@
 // src/pages/Dashboard.jsx
 import React, { useState } from "react";
-import {
-  FileText,
-  Clock,
-  CheckCircle,
-  Users,
-  ClipboardList,
-  CheckSquare,
-  Activity,
-} from "lucide-react";
+import { Row, Col, Card, Typography } from "antd";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const { Title, Text } = Typography;
 
 const Dashboard = () => {
   // Example data — you can replace/fetch from API later
@@ -29,123 +24,98 @@ const Dashboard = () => {
     },
   ]);
 
-  const recentActivity = [
-    { id: 1, action: "Checklist DCL-001 submitted", time: "2 hours ago" },
-    { id: 2, action: "Checklist DCL-002 approved", time: "1 day ago" },
-    { id: 3, action: "Checklist DCL-003 deferred", time: "3 days ago" },
+  // Cards data same as Reports.jsx with colors matching
+  const cardsData = [
+    {
+      title: "Total Checklists",
+      value: 695,
+      subText: "+12% this month",
+      borderColor: "#3A2A82",
+      textColor: "#3A2A82",
+    },
+    {
+      title: "Pending Checklists",
+      value: 180,
+      subText: "RM follow-up required",
+      borderColor: "#C8A854",
+      textColor: "#C8A854",
+    },
+    {
+      title: "Deferred Requests",
+      value: 95,
+      subText: "Awaiting additional docs",
+      borderColor: "#FF6B3D",
+      textColor: "#FF6B3D",
+    },
   ];
 
-  const myTasks = [
-    { id: 1, task: "Review checklist DCL-001", due: "Today" },
-    { id: 2, task: "Follow up on deferral for DCL-004", due: "Tomorrow" },
+  const pieData = [
+    { name: "Completed", value: 420 },
+    { name: "Pending", value: 180 },
+    { name: "Deferred", value: 95 },
   ];
 
-  const pipeline = [
-    { status: "Pending Review", count: dclList.length },
-    { status: "Deferrals", count: 2 },
-    { status: "Completed", count: 9 },
-  ];
-
-  const dashboardCards = [
-    {
-      title: "Checklists Created",
-      value: 14,
-      icon: <FileText size={26} className="text-[#3A2A82]" />,
-    },
-    {
-      title: "Pending RM Submissions",
-      value: 4,
-      icon: <Users size={26} className="text-blue-500" />,
-    },
-    {
-      title: "Pending Reviews",
-      value: dclList.length,
-      icon: <Clock size={26} className="text-orange-500" />,
-    },
-    {
-      title: "Completed Checklists",
-      value: 9,
-      icon: <CheckCircle size={26} className="text-green-600" />,
-    },
-  ];
+  const COLORS = ["#3A2A82", "#C8A854", "#FF6B3D"];
 
   return (
     <section className="p-6 bg-[#F4F7FC] min-h-screen">
-      <h1 className="text-3xl font-bold mb-8 text-gray-900">
-        Credit Officer Dashboard
-      </h1>
-
-      {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {dashboardCards.map((card) => (
-          <div
-            key={card.title}
-            className="backdrop-blur-xl bg-white/60 border border-white/40 shadow-lg rounded-xl p-6 transition-all hover:shadow-xl hover:bg-white/70"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-gray-700 font-semibold">{card.title}</p>
-              {card.icon}
-            </div>
-            <p className="text-3xl font-bold text-gray-800">{card.value}</p>
-          </div>
+      {/* Cards styled like Reports.jsx */}
+      <Row gutter={16} style={{ marginBottom: 30 }}>
+        {cardsData.map(({ title, value, subText, borderColor, textColor }) => (
+          <Col key={title} span={8}>
+            <Card
+              style={{
+                borderLeft: `5px solid ${borderColor}`,
+                borderRadius: 8,
+                background: "#fff",
+              }}
+            >
+              <Text type="secondary">{title}</Text>
+              <Title level={3} style={{ margin: 0 }}>
+                {value}
+              </Title>
+              <Text strong style={{ color: textColor }}>
+                {subText}
+              </Text>
+            </Card>
+          </Col>
         ))}
-      </div>
+      </Row>
 
-      {/* Recent Activity */}
-      <div className="mb-10">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <Activity size={24} className="text-[#3A2A82]" />
-          Recent Activity
-        </h2>
-        <ul className="bg-white rounded-lg shadow p-4 space-y-3">
-          {recentActivity.map((item) => (
-            <li
-              key={item.id}
-              className="flex justify-between border-b last:border-b-0 border-gray-200 pb-2"
-            >
-              <span>{item.action}</span>
-              <time className="text-gray-500 text-sm">{item.time}</time>
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Pie Chart under cards */}
+      <div
+        style={{
+          background: "#fff",
+          padding: 20,
+          borderRadius: 8,
+          boxShadow: "0px 2px 8px rgba(0,0,0,0.06)",
+          maxWidth: 700,
+          marginBottom: 40,
+          marginLeft: 'auto',
+          marginRight: 'auto',
+        }}
+      >
+        <h3 style={{ textAlign: "center", color: "#3A2A82", marginBottom: 20 }}>
+          Checklist Status Breakdown
+        </h3>
 
-      {/* My Tasks */}
-      <div className="mb-10">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <CheckSquare size={24} className="text-[#3A2A82]" />
-          My Tasks
-        </h2>
-        <ul className="bg-white rounded-lg shadow p-4 space-y-3">
-          {myTasks.map((task) => (
-            <li
-              key={task.id}
-              className="flex justify-between border-b last:border-b-0 border-gray-200 pb-2"
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie
+              data={pieData}
+              dataKey="value"
+              nameKey="name"
+              outerRadius={120}
+              label
             >
-              <span>{task.task}</span>
-              <time className="text-gray-500 text-sm">{task.due}</time>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Pipeline */}
-      <div>
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-          <ClipboardList size={24} className="text-[#3A2A82]" />
-          DCL Pipeline Overview
-        </h2>
-        <ul className="bg-white rounded-lg shadow p-4 space-y-3">
-          {pipeline.map(({ status, count }, idx) => (
-            <li
-              key={idx}
-              className="flex justify-between border-b last:border-b-0 border-gray-200 pb-2"
-            >
-              <span>{status}</span>
-              <span className="font-semibold">{count}</span>
-            </li>
-          ))}
-        </ul>
+              {pieData.map((entry, index) => (
+                <Cell key={index} fill={COLORS[index]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
     </section>
   );
