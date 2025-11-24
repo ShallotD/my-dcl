@@ -6,6 +6,10 @@ import Hero from "./components/hero";
 import MainLayout from "./components/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import MyQueue from "./pages/MyQueue";
+import CreateDCL from "./pages/CreateDCL";
+import Deferrals from "./pages/Deferrals";
+import Completed from "./pages/Completed";
+import Active from "./pages/Active";
 
 
 export default function App() {
@@ -32,6 +36,14 @@ export default function App() {
         <Route path="/dashboard" element={<Dashboard />} />
 
         <Route path="/myqueue" element={<MyQueue />} />
+
+        <Route path="/checklists" element={<CreateDCL />} />
+
+        <Route path="/deferrals" element={<Deferrals />} />  
+
+        <Route path="/completed" element={<Completed />} />
+
+        <Route path="/active" element={<Active />} /> 
    
         <Route path="/home" element={<Home />} />
 
