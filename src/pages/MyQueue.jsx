@@ -1,22 +1,12 @@
 // src/pages/MyQueue.jsx
 import React, { useState, useMemo } from "react";
-import {
-  Table,
-  Tag,
-  Button,
-  Input,
-  Select,
-  Space,
-  Tooltip,
-  Progress,
-  Dropdown,
-} from "antd";
+import { Table, Tag, Button, Input, Select, Space, Progress, Dropdown, message } from "antd";
 import { MoreOutlined } from "@ant-design/icons";
-import ChecklistSubmitRM from "../components/ChecklistSubmitRM";
+import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
 
-// ---------- MOCKED DATA ----------
+// ---------------- MOCK DATA ----------------
 const MOCK_CHECKLISTS = [
   {
     _id: "1",
@@ -24,13 +14,9 @@ const MOCK_CHECKLISTS = [
     loanType: "Home Loan",
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm1", firstName: "John", lastName: "Mwangi" },
-    categories: [
-      {
-        documents: [
-          { name: "ID Proof", status: "Submitted" },
-          { name: "Address Proof", status: "Deferred" },
-        ],
-      },
+    documents: [
+      { name: "Employment Letter", status: "Submitted" },
+      { name: "Bank Statement", status: "Deferred" },
     ],
   },
   {
@@ -39,161 +25,194 @@ const MOCK_CHECKLISTS = [
     loanType: "Car Loan",
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm2", firstName: "Sarah", lastName: "Kamau" },
-    categories: [
-      {
-        documents: [
-          { name: "ID Proof", status: "Pending" },
-          { name: "Income Proof", status: "Submitted" },
-        ],
-      },
+    documents: [
+      { name: "Driver’s License", status: "Submitted" },
+      { name: "Income Certificate", status: "Submitted" },
     ],
   },
   {
     _id: "3",
-    applicantName: "Charlie Davis",
+    applicantName: "Catherine Mwangi",
     loanType: "Personal Loan",
     createdAt: new Date().toISOString(),
-    rmId: null,
-    categories: [
-      {
-        documents: [{ name: "ID Proof", status: "Not Actioned" }],
-      },
+    rmId: { _id: "rm3", firstName: "David", lastName: "Otieno" },
+    documents: [
+      { name: "Passport", status: "Submitted" },
+      { name: "Salary Slip", status: "Submitted" },
+    ],
+  },
+  {
+    _id: "4",
+    applicantName: "Daniel Kimani",
+    loanType: "Business Loan",
+    createdAt: new Date().toISOString(),
+    rmId: { _id: "rm4", firstName: "Grace", lastName: "Njeri" },
+    documents: [
+      { name: "Business Registration", status: "Pending" },
+      { name: "Bank Statement", status: "Deferred" },
+    ],
+  },
+  {
+    _id: "5",
+    applicantName: "Eva Njoroge",
+    loanType: "Mortgage",
+    createdAt: new Date().toISOString(),
+    rmId: { _id: "rm5", firstName: "Peter", lastName: "Mwangi" },
+    documents: [
+      { name: "Property Deed", status: "Submitted" },
+      { name: "ID Proof", status: "Submitted" },
+    ],
+  },
+  {
+    _id: "6",
+    applicantName: "Frank Otieno",
+    loanType: "SME Loan",
+    createdAt: new Date().toISOString(),
+    rmId: { _id: "rm6", firstName: "Lydia", lastName: "Ndegwa" },
+    documents: [
+      { name: "KRA Pin", status: "Submitted" },
+      { name: "CR12", status: "Pending" },
+    ],
+  },
+  {
+    _id: "7",
+    applicantName: "Grace Wanjiru",
+    loanType: "Car Loan",
+    createdAt: new Date().toISOString(),
+    rmId: { _id: "rm2", firstName: "Sarah", lastName: "Kamau" },
+    documents: [
+      { name: "Driver’s License", status: "Deferred" },
+      { name: "Insurance Document", status: "Submitted" },
+    ],
+  },
+  {
+    _id: "8",
+    applicantName: "Henry Kariuki",
+    loanType: "Home Loan",
+    createdAt: new Date().toISOString(),
+    rmId: { _id: "rm1", firstName: "John", lastName: "Mwangi" },
+    documents: [
+      { name: "ID Proof", status: "Submitted" },
+      { name: "Salary Slip", status: "Submitted" },
+      { name: "Bank Statement", status: "Pending" },
     ],
   },
 ];
 
 const MyQueue = () => {
-  const [page, setPage] = useState(1);
+  const navigate = useNavigate();
+  const [checklists, setChecklists] = useState(MOCK_CHECKLISTS);
+  const [searchText, setSearchText] = useState("");
   const [rmFilter, setRmFilter] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
-  const [searchText, setSearchText] = useState("");
-  const [drawerChecklist, setDrawerChecklist] = useState(null);
 
-  const checklists = MOCK_CHECKLISTS;
-
-  // FILTER + SEARCH
+  // ---------------- FILTERED DATA ----------------
   const filteredData = useMemo(() => {
     return checklists
-      .filter((item) =>
-        searchText
-          ? item.applicantName.toLowerCase().includes(searchText.toLowerCase())
-          : true
+      .filter(item =>
+        searchText ? item.applicantName.toLowerCase().includes(searchText.toLowerCase()) : true
       )
-      .filter((item) => (rmFilter ? item.rmId?._id === rmFilter : true))
-      .filter((item) => {
+      .filter(item => (rmFilter ? item.rmId?._id === rmFilter : true))
+      .filter(item => {
         if (!statusFilter) return true;
-        const docs = item?.categories?.[0]?.documents || [];
-        return docs.some((d) => d.status === statusFilter);
+        return item.documents.some(d => d.status === statusFilter);
       });
-  }, [checklists, rmFilter, statusFilter, searchText]);
+  }, [checklists, searchText, rmFilter, statusFilter]);
 
-  const rmOptions = Array.from(
-    new Map(
-      checklists
-        .filter((i) => i.rmId)
-        .map((i) => [
-          i.rmId._id,
-          {
-            label: `${i.rmId.firstName} ${i.rmId.lastName}`,
-            value: i.rmId._id,
-          },
-        ])
-    ).values()
-  );
+  const rmOptions = [
+    ...new Map(
+      checklists.map(i => [
+        i.rmId._id,
+        { label: `${i.rmId.firstName} ${i.rmId.lastName}`, value: i.rmId._id },
+      ])
+    ).values(),
+  ];
 
+  // ---------------- ACTIONS ----------------
+  const handleApproveAll = (row) => {
+    const allReady = row.documents.every(d => d.status === "Submitted" || d.status === "Deferred");
+    if (!allReady) {
+      message.warning("Some documents are not ready to approve.");
+      return;
+    }
+
+    setChecklists(prev =>
+      prev.map(item =>
+        item._id === row._id
+          ? { ...item, documents: item.documents.map(d => ({ ...d, status: "Approved" })) }
+          : item
+      )
+    );
+    message.success(`All documents for ${row.applicantName} approved and forwarded to Checker.`);
+  };
+
+  const handleReturnToRM = (row) => {
+    setChecklists(prev =>
+      prev.map(item =>
+        item._id === row._id
+          ? {
+              ...item,
+              documents: item.documents.map(d =>
+                d.status !== "Approved" ? { ...d, status: "Returned" } : d
+              ),
+            }
+          : item
+      )
+    );
+    message.info(`Checklist for ${row.applicantName} returned to RM for action.`);
+  };
+
+  // ---------------- TABLE COLUMNS ----------------
   const columns = [
     {
       title: "Applicant",
-      sorter: (a, b) => a.applicantName.localeCompare(b.applicantName),
       render: (_, row) => (
         <div style={{ fontWeight: 600 }}>
           {row.applicantName}
-          <div style={{ fontSize: 12, color: "#8c8c8c" }}>
-            RM: {row.rmId ? `${row.rmId.firstName} ${row.rmId.lastName}` : "Unknown RM"}
+          <div style={{ fontSize: 12, color: "#888" }}>
+            RM: {row.rmId.firstName} {row.rmId.lastName}
           </div>
         </div>
       ),
     },
-
     {
       title: "Loan Type",
-      dataIndex: "loanType",
-      sorter: (a, b) => a.loanType.localeCompare(b.loanType),
-      render: (type) => (
-        <Tag color="purple" style={{ fontWeight: 600 }}>
-          {type}
-        </Tag>
-      ),
+      render: (_, row) => <Tag color="purple">{row.loanType}</Tag>,
     },
-
     {
       title: "Progress",
       render: (_, row) => {
-        const docs = row.categories?.[0]?.documents || [];
-        const submitted = docs.filter((d) => d.status === "Submitted").length;
-        const percent = docs.length
-          ? Math.round((submitted / docs.length) * 100)
-          : 0;
-
-        return <Progress percent={percent} size="small" strokeColor="#1890ff" />;
+        const docs = row.documents;
+        const approved = docs.filter(d => d.status === "Approved").length;
+        const percent = Math.round((approved / docs.length) * 100);
+        return <Progress percent={percent} size="small" />;
       },
     },
-
     {
-      title: "Deferred Docs",
+      title: "Deferred",
       render: (_, row) => {
-        const docs = row.categories?.[0]?.documents || [];
-        const deferred = docs.filter((d) => d.status === "Deferred").length;
-
-        return (
-          <Tooltip title="Documents requested later">
-            <Tag color="orange" style={{ fontWeight: 600 }}>
-              {deferred}
-            </Tag>
-          </Tooltip>
-        );
+        const deferred = row.documents.filter(d => d.status === "Deferred").length;
+        return <Tag color="orange">{deferred}</Tag>;
       },
     },
-
     {
       title: "Created",
       dataIndex: "createdAt",
-      sorter: (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      render: (d) => new Date(d).toLocaleString(),
+      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      render: date => new Date(date).toLocaleString(),
     },
-
-    {
-      title: "Assign",
-      render: () => (
-        <Select
-          placeholder="Assign RM"
-          style={{ width: 170 }}
-          options={[
-            { label: "John Mwangi", value: "john" },
-            { label: "Sarah Kamau", value: "sarah" },
-          ]}
-        />
-      ),
-    },
-
     {
       title: "Actions",
       render: (_, row) => (
         <Dropdown
-          trigger={["click"]}
           menu={{
             items: [
-              {
-                key: "view",
-                label: "View Checklist",
-                onClick: () => setDrawerChecklist(row), // Open Drawer here
-              },
-              { key: "approve", label: "Approve" },
-              { key: "reject", label: "Reject" },
-              { key: "return", label: "Return to RM" },
+              { key: "view", label: "Review Checklist", onClick: () => navigate(`/creator/review/${row._id}`) },
+              { key: "approve", label: "Approve All", onClick: () => handleApproveAll(row) },
+              { key: "return", label: "Return to RM", onClick: () => handleReturnToRM(row) },
             ],
           }}
+          trigger={["click"]}
         >
           <Button icon={<MoreOutlined />} />
         </Dropdown>
@@ -201,116 +220,48 @@ const MyQueue = () => {
     },
   ];
 
-  const expandedRowRender = (row) => {
-    const docs = row.categories?.[0]?.documents || [];
-
-    return (
-      <div style={{ padding: 16, background: "#f9f9fb", borderRadius: 8 }}>
-        <strong style={{ display: "block", marginBottom: 8 }}>Documents</strong>
-
-        {docs.map((d) => (
-          <div
-            key={d.name}
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              borderBottom: "1px solid #f0f0f0",
-              padding: "6px 0",
-            }}
-          >
-            <span>{d.name}</span>
-
-            <Tag
-              color={
-                d.status === "Submitted"
-                  ? "green"
-                  : d.status === "Pending"
-                  ? "gold"
-                  : "default"
-              }
-              style={{ fontWeight: 600 }}
-            >
-              {d.status}
-            </Tag>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="p-6 w-full">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">My Queue</h1>
+      <h1 className="text-2xl font-bold mb-4">My Queue</h1>
 
-      {/* Search + Filters */}
-      <Space className="mb-4" wrap>
+      <Space className="mb-4">
         <Search
-          placeholder="Search applicant..."
+          placeholder="Search applicant"
           allowClear
-          onChange={(e) => setSearchText(e.target.value)}
+          onChange={e => setSearchText(e.target.value)}
           style={{ width: 200 }}
         />
-
         <Select
           placeholder="Filter by RM"
-          style={{ width: 180 }}
           allowClear
-          onChange={setRmFilter}
+          style={{ width: 180 }}
           options={rmOptions}
+          onChange={setRmFilter}
         />
-
         <Select
           placeholder="Filter by Status"
           allowClear
           style={{ width: 180 }}
-          onChange={setStatusFilter}
           options={[
             { label: "Submitted", value: "Submitted" },
             { label: "Pending", value: "Pending" },
-            { label: "Not Actioned", value: "Not Actioned" },
+            { label: "Deferred", value: "Deferred" },
+            { label: "Approved", value: "Approved" },
+            { label: "Returned", value: "Returned" },
           ]}
+          onChange={setStatusFilter}
         />
       </Space>
 
-      {/* TABLE */}
       <Table
         columns={columns}
-        rowKey="_id"
-        expandable={{ expandedRowRender }}
         dataSource={filteredData}
-        pagination={{
-          current: page,
-          pageSize: 6,
-          onChange: setPage,
-        }}
+        rowKey="_id"
         bordered
-        rowClassName={(record, index) =>
-          index % 2 === 0 ? "bank-table-row-light" : "bank-table-row-dark"
-        }
+        pagination={{ pageSize: 6 }}
       />
-
-      {/* Checklist Drawer */}
-      <ChecklistSubmitRM checklist={drawerChecklist} onClose={() => setDrawerChecklist(null)} />
-
-      <style jsx>{`
-        .bank-table-row-light {
-          background: #ffffff;
-        }
-        .bank-table-row-dark {
-          background: #f5f5f7;
-        }
-        .ant-table-thead > tr > th {
-          background: #f0f5ff !important;
-          font-weight: 600;
-          color: #001529;
-        }
-        .ant-table-tbody > tr:hover > td {
-          background: #e6f7ff !important;
-        }
-      `}</style>
     </div>
   );
 };
 
 export default MyQueue;
-

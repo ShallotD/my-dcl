@@ -38,6 +38,11 @@ const Sidebar = () => {
             My Queue
           </NavLink>
 
+          <NavLink to="/active" className={linkClass}>
+            <Users size={12} className="text-gray-200" />
+            Active
+          </NavLink>
+
           <NavLink to="/deferrals" className={linkClass}>
             <Clock size={12} className="text-gray-200" />
             Deferrals
