@@ -1,400 +1,316 @@
-// import React, { useState } from "react";
-// // import { useNavigate } from "react-router-dom";
+// src/pages/MyQueue.jsx
+import React, { useState, useMemo } from "react";
+import {
+  Table,
+  Tag,
+  Button,
+  Input,
+  Select,
+  Space,
+  Tooltip,
+  Progress,
+  Dropdown,
+} from "antd";
+import { MoreOutlined } from "@ant-design/icons";
+import ChecklistSubmitRM from "../components/ChecklistSubmitRM";
 
-// import TopToolbar from "../components/cochecker/Layout/TopToolbar";
-// import SideQueuePanel from "../components/cochecker/Layout/SideQueuePanel";
-// import LoanTable from "../components/cochecker/Loans/LoanTable";
-// import LoanModal from "../components/cochecker/Loans/LoanModal";
+const { Search } = Input;
 
-// function Hero() {
-//   const [loans, setLoans] = useState([
-//     {
-//       id: 101,
-//       registrationNo: "Loan-293614",
-//       name: "John Doe",
-//       amount: 50000,
-//       status: "Pending Review",
-//       entryDate: "2025-10-09 16:58:23",
-//       tatRemaining: "09d:06h:26m",
-//       tatConsumed: "09d:06h:26m",
-//       workStep: "Docs_Pending",
-//       firstName: "JOHN",
-//       surname: "DOE",
-//     },
-//     {
-//       id: 102,
-//       registrationNo: "Loan-292160",
-//       name: "Mary Smith",
-//       amount: 25000,
-//       status: "Pending Deferral",
-//       entryDate: "2025-09-26 18:36:08",
-//       tatRemaining: "13d:00h:25m",
-//       tatConsumed: "13d:00h:25m",
-//       workStep: "Pending_Deferral",
-//       firstName: "MARY",
-//       surname: "SMITH",
-//     },
-//     {
-//       id: 103,
-//       registrationNo: "Loan-291032",
-//       name: "James Brown",
-//       amount: 40000,
-//       status: "Submitted",
-//       entryDate: "2025-10-24 12:06:58",
-//       tatRemaining: "—",
-//       tatConsumed: "—",
-//       workStep: "Submitted",
-//       firstName: "JAMES",
-//       surname: "BROWN",
-//     },
-//   ]);
+// ---------- MOCKED DATA ----------
+const MOCK_CHECKLISTS = [
+  {
+    _id: "1",
+    applicantName: "Alice Johnson",
+    loanType: "Home Loan",
+    createdAt: new Date().toISOString(),
+    rmId: { _id: "rm1", firstName: "John", lastName: "Mwangi" },
+    categories: [
+      {
+        documents: [
+          { name: "ID Proof", status: "Submitted" },
+          { name: "Address Proof", status: "Deferred" },
+        ],
+      },
+    ],
+  },
+  {
+    _id: "2",
+    applicantName: "Bob Smith",
+    loanType: "Car Loan",
+    createdAt: new Date().toISOString(),
+    rmId: { _id: "rm2", firstName: "Sarah", lastName: "Kamau" },
+    categories: [
+      {
+        documents: [
+          { name: "ID Proof", status: "Pending" },
+          { name: "Income Proof", status: "Submitted" },
+        ],
+      },
+    ],
+  },
+  {
+    _id: "3",
+    applicantName: "Charlie Davis",
+    loanType: "Personal Loan",
+    createdAt: new Date().toISOString(),
+    rmId: null,
+    categories: [
+      {
+        documents: [{ name: "ID Proof", status: "Not Actioned" }],
+      },
+    ],
+  },
+];
 
-//   const [openedLoan, setOpenedLoan] = useState(null);
-//   const [search, setSearch] = useState("");
+const MyQueue = () => {
+  const [page, setPage] = useState(1);
+  const [rmFilter, setRmFilter] = useState(null);
+  const [statusFilter, setStatusFilter] = useState(null);
+  const [searchText, setSearchText] = useState("");
+  const [drawerChecklist, setDrawerChecklist] = useState(null);
 
-//   const statusOptions = ["Pending Review", "Pending Deferral", "Submitted"];
-//   const workStepOptions = ["Docs_Pending", "Pending_Deferral", "Submitted"];
+  const checklists = MOCK_CHECKLISTS;
 
-//   const filteredLoans = loans.filter(
-//     (loan) =>
-//       loan.registrationNo.toLowerCase().includes(search.toLowerCase()) ||
-//       loan.name.toLowerCase().includes(search.toLowerCase())
-//   );
+  // FILTER + SEARCH
+  const filteredData = useMemo(() => {
+    return checklists
+      .filter((item) =>
+        searchText
+          ? item.applicantName.toLowerCase().includes(searchText.toLowerCase())
+          : true
+      )
+      .filter((item) => (rmFilter ? item.rmId?._id === rmFilter : true))
+      .filter((item) => {
+        if (!statusFilter) return true;
+        const docs = item?.categories?.[0]?.documents || [];
+        return docs.some((d) => d.status === statusFilter);
+      });
+  }, [checklists, rmFilter, statusFilter, searchText]);
 
-//   const updateLoanStatus = (id, newStatus) => {
-//     setLoans((prev) =>
-//       prev.map((loan) =>
-//         loan.id === id ? { ...loan, status: newStatus } : loan
-//       )
-//     );
-//     setOpenedLoan(null);
-//   };
-
-//   const updateWorkStep = (id, newStep) => {
-//     setLoans((prev) =>
-//       prev.map((loan) =>
-//         loan.id === id ? { ...loan, workStep: newStep } : loan
-//       )
-//     );
-//     setOpenedLoan(null);
-//   };
-
-// //   const navigate = useNavigate();
-// //   const openChecklist = () => {
-// //     navigate("/cl");
-// //   };
-
-//   return (
-//     <div className="min-h-screen bg-gray-100 text-gray-700">
-//       <TopToolbar />
-
-//       <div className="flex">
-//         <SideQueuePanel />
-
-//         <div className="flex-1 p-6">
-//           <h2 className="text-xl font-bold text-[#0052B1] mb-4">
-//             My Search Queue
-//           </h2>
-
-//           <input
-//             type="text"
-//             placeholder="Search…"
-//             value={search}
-//             onChange={(e) => setSearch(e.target.value)}
-//             className="border px-3 py-2 rounded mb-4 w-72"
-//           />
-
-//           <LoanTable loans={filteredLoans} onOpen={setOpenedLoan} />
-
-//           {openedLoan && (
-//             <LoanModal
-//               loan={openedLoan}
-//               statusOptions={statusOptions}
-//               workStepOptions={workStepOptions}
-//               onStatusUpdate={updateLoanStatus}
-//               onStepUpdate={updateWorkStep}
-//               onClose={() => setOpenedLoan(null)}
-//             />
-//           )}
-//         </div>
-//       </div>
-//       {/* <div>
-//         <button onClick={openChecklist}>checklist</button>
-//       </div> */}
-//     </div>
-//   );
-// }
-
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-
-function MyQueue() {
-  // --- Loan data and functions ---
-  const [loans, setLoans] = useState([
-    {
-      id: 101,
-      registrationNo: "Loan-293614",
-      name: "John Doe",
-      amount: 50000,
-      status: "Pending Review",
-      entryDate: "2025-10-09 16:58:23",
-      tatRemaining: "09d:06h:26m",
-      tatConsumed: "09d:06h:26m",
-      workStep: "Docs_Pending",
-      firstName: "JOHN",
-      surname: "DOE"
-    },
-    {
-      id: 102,
-      registrationNo: "Loan-292160",
-      name: "Mary Smith",
-      amount: 25000,
-      status: "Pending Deferral",
-      entryDate: "2025-09-26 18:36:08",
-      tatRemaining: "13d:00h:25m",
-      tatConsumed: "13d:00h:25m",
-      workStep: "Pending_Deferral",
-      firstName: "MARY",
-      surname: "SMITH"
-    },
-    {
-      id: 103,
-      registrationNo: "Loan-291032",
-      name: "James Brown",
-      amount: 40000,
-      status: "Submitted",
-      entryDate: "2025-10-24 12:06:58",
-      tatRemaining: "—",
-      tatConsumed: "—",
-      workStep: "Submitted",
-      firstName: "JAMES",
-      surname: "BROWN"
-    }
-  ]);
-
-  const [openedLoan, setOpenedLoan] = useState(null);
-  const [search, setSearch] = useState("");
-
-  // Sorting State
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-
-  const statusOptions = ["Pending Review", "Pending Deferral", "Submitted"];
-  const workStepOptions = ["Docs_Pending", "Pending_Deferral", "Submitted"];
-
-  // Sorting function
-  const sortData = (key) => {
-    let direction = "asc";
-
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-
-    setSortConfig({ key, direction });
-
-    const sorted = [...loans].sort((a, b) => {
-      if (a[key] < b[key]) return direction === "asc" ? -1 : 1;
-      if (a[key] > b[key]) return direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    setLoans(sorted);
-  };
-
-  const filteredLoans = loans.filter((loan) =>
-    loan.registrationNo.toLowerCase().includes(search.toLowerCase()) ||
-    loan.name.toLowerCase().includes(search.toLowerCase())
+  const rmOptions = Array.from(
+    new Map(
+      checklists
+        .filter((i) => i.rmId)
+        .map((i) => [
+          i.rmId._id,
+          {
+            label: `${i.rmId.firstName} ${i.rmId.lastName}`,
+            value: i.rmId._id,
+          },
+        ])
+    ).values()
   );
 
-  const updateLoanStatus = (id, newStatus) => {
-    const updated = loans.map((ln) =>
-      ln.id === id ? { ...ln, status: newStatus } : ln
+  const columns = [
+    {
+      title: "Applicant",
+      sorter: (a, b) => a.applicantName.localeCompare(b.applicantName),
+      render: (_, row) => (
+        <div style={{ fontWeight: 600 }}>
+          {row.applicantName}
+          <div style={{ fontSize: 12, color: "#8c8c8c" }}>
+            RM: {row.rmId ? `${row.rmId.firstName} ${row.rmId.lastName}` : "Unknown RM"}
+          </div>
+        </div>
+      ),
+    },
+
+    {
+      title: "Loan Type",
+      dataIndex: "loanType",
+      sorter: (a, b) => a.loanType.localeCompare(b.loanType),
+      render: (type) => (
+        <Tag color="purple" style={{ fontWeight: 600 }}>
+          {type}
+        </Tag>
+      ),
+    },
+
+    {
+      title: "Progress",
+      render: (_, row) => {
+        const docs = row.categories?.[0]?.documents || [];
+        const submitted = docs.filter((d) => d.status === "Submitted").length;
+        const percent = docs.length
+          ? Math.round((submitted / docs.length) * 100)
+          : 0;
+
+        return <Progress percent={percent} size="small" strokeColor="#1890ff" />;
+      },
+    },
+
+    {
+      title: "Deferred Docs",
+      render: (_, row) => {
+        const docs = row.categories?.[0]?.documents || [];
+        const deferred = docs.filter((d) => d.status === "Deferred").length;
+
+        return (
+          <Tooltip title="Documents requested later">
+            <Tag color="orange" style={{ fontWeight: 600 }}>
+              {deferred}
+            </Tag>
+          </Tooltip>
+        );
+      },
+    },
+
+    {
+      title: "Created",
+      dataIndex: "createdAt",
+      sorter: (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      render: (d) => new Date(d).toLocaleString(),
+    },
+
+    {
+      title: "Assign",
+      render: () => (
+        <Select
+          placeholder="Assign RM"
+          style={{ width: 170 }}
+          options={[
+            { label: "John Mwangi", value: "john" },
+            { label: "Sarah Kamau", value: "sarah" },
+          ]}
+        />
+      ),
+    },
+
+    {
+      title: "Actions",
+      render: (_, row) => (
+        <Dropdown
+          trigger={["click"]}
+          menu={{
+            items: [
+              {
+                key: "view",
+                label: "View Checklist",
+                onClick: () => setDrawerChecklist(row), // Open Drawer here
+              },
+              { key: "approve", label: "Approve" },
+              { key: "reject", label: "Reject" },
+              { key: "return", label: "Return to RM" },
+            ],
+          }}
+        >
+          <Button icon={<MoreOutlined />} />
+        </Dropdown>
+      ),
+    },
+  ];
+
+  const expandedRowRender = (row) => {
+    const docs = row.categories?.[0]?.documents || [];
+
+    return (
+      <div style={{ padding: 16, background: "#f9f9fb", borderRadius: 8 }}>
+        <strong style={{ display: "block", marginBottom: 8 }}>Documents</strong>
+
+        {docs.map((d) => (
+          <div
+            key={d.name}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              borderBottom: "1px solid #f0f0f0",
+              padding: "6px 0",
+            }}
+          >
+            <span>{d.name}</span>
+
+            <Tag
+              color={
+                d.status === "Submitted"
+                  ? "green"
+                  : d.status === "Pending"
+                  ? "gold"
+                  : "default"
+              }
+              style={{ fontWeight: 600 }}
+            >
+              {d.status}
+            </Tag>
+          </div>
+        ))}
+      </div>
     );
-    setLoans(updated);
-    setOpenedLoan(null);
-  };
-
-  const updateWorkStep = (id, newStep) => {
-    const updated = loans.map((ln) =>
-      ln.id === id ? { ...ln, workStep: newStep } : ln
-    );
-    setLoans(updated);
-    setOpenedLoan(null);
-  };
-
-  const getArrow = (key) => {
-    if (sortConfig.key !== key) return "↕";
-    return sortConfig.direction === "asc" ? "↑" : "↓";
-  };
-
-  const getWorkStepColor = (workStep) => {
-    switch (workStep) {
-      case "Docs_Pending":
-        return "bg-black text-white";
-      case "Pending_Deferral":
-        return "bg-orange-100 text-orange-700 border border-orange-300";
-      case "Submitted":
-        return "bg-red-100 text-red-700 border border-red-300";
-      default:
-        return "bg-gray-100 text-gray-700";
-    }
-  };
-
-  const navigate = useNavigate();
-
-  const openChecklist = () => {
-    navigate("/cl");
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 text-gray-700">
+    <div className="p-6 w-full">
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">My Queue</h1>
 
-      {/* MAIN CONTENT */}
-      <div className="p-6 w-full">
-
-        {/* Title */}
-        <h2 className="text-xl font-bold text-[#0052B1] mb-4">
-          My Queue
-        </h2>
-
-        {/* SEARCH BAR */}
-        <input
-          type="text"
-          placeholder="Search…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="border px-3 py-2 rounded mb-4 w-72"
+      {/* Search + Filters */}
+      <Space className="mb-4" wrap>
+        <Search
+          placeholder="Search applicant..."
+          allowClear
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 200 }}
         />
 
-        {/* Table */}
-        <div className="bg-white shadow rounded overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr className="text-left text-gray-600">
+        <Select
+          placeholder="Filter by RM"
+          style={{ width: 180 }}
+          allowClear
+          onChange={setRmFilter}
+          options={rmOptions}
+        />
 
-                <th className="py-3 px-4 cursor-pointer" onClick={() => sortData("registrationNo")}>
-                  Registration No {getArrow("registrationNo")}
-                </th>
+        <Select
+          placeholder="Filter by Status"
+          allowClear
+          style={{ width: 180 }}
+          onChange={setStatusFilter}
+          options={[
+            { label: "Submitted", value: "Submitted" },
+            { label: "Pending", value: "Pending" },
+            { label: "Not Actioned", value: "Not Actioned" },
+          ]}
+        />
+      </Space>
 
-                <th className="py-3 px-4 cursor-pointer" onClick={() => sortData("entryDate")}>
-                  Entry Date Time {getArrow("entryDate")}
-                </th>
+      {/* TABLE */}
+      <Table
+        columns={columns}
+        rowKey="_id"
+        expandable={{ expandedRowRender }}
+        dataSource={filteredData}
+        pagination={{
+          current: page,
+          pageSize: 6,
+          onChange: setPage,
+        }}
+        bordered
+        rowClassName={(record, index) =>
+          index % 2 === 0 ? "bank-table-row-light" : "bank-table-row-dark"
+        }
+      />
 
-                <th className="py-3 px-4 cursor-pointer" onClick={() => sortData("tatRemaining")}>
-                  TAT Remaining {getArrow("tatRemaining")}
-                </th>
+      {/* Checklist Drawer */}
+      <ChecklistSubmitRM checklist={drawerChecklist} onClose={() => setDrawerChecklist(null)} />
 
-                <th className="py-3 px-4 cursor-pointer" onClick={() => sortData("tatConsumed")}>
-                  TAT Consumed {getArrow("tatConsumed")}
-                </th>
-
-                <th className="py-3 px-4 cursor-pointer" onClick={() => sortData("workStep")}>
-                  Workstep {getArrow("workStep")}
-                </th>
-
-                <th className="py-3 px-4 cursor-pointer" onClick={() => sortData("firstName")}>
-                  FName {getArrow("firstName")}
-                </th>
-
-                <th className="py-3 px-4 cursor-pointer" onClick={() => sortData("surname")}>
-                  SName {getArrow("surname")}
-                </th>
-
-                <th className="py-3 px-4">Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filteredLoans.map((loan) => (
-                <tr
-                  key={loan.id}
-                  className="border-b hover:bg-gray-50 cursor-pointer"
-                  onClick={openChecklist}
-                >
-                  <td className="py-3 px-4 text-red-600 font-semibold">{loan.registrationNo}</td>
-                  <td className="py-3 px-4">{loan.entryDate}</td>
-                  <td className="py-3 px-4">{loan.tatRemaining}</td>
-                  <td className="py-3 px-4 text-red-500">{loan.tatConsumed}</td>
-
-                  <td className="py-3 px-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getWorkStepColor(loan.workStep)}`}>
-                      {loan.workStep}
-                    </span>
-                  </td>
-
-                  <td className="py-3 px-4">{loan.firstName}</td>
-                  <td className="py-3 px-4">{loan.surname}</td>
-
-                  <td className="py-3 px-4">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation(); // stops row click
-                        setOpenedLoan(loan);
-                      }}
-                      className="bg-[#FFCD00] text-[#0052B1] px-3 py-1 rounded font-semibold hover:bg-yellow-400"
-                    >
-                      Update
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Modal */}
-        {openedLoan && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-            <div className="bg-white p-6 rounded shadow-lg w-96">
-
-              <h3 className="text-xl font-bold text-[#0052B1] mb-4">
-                Update {openedLoan.registrationNo}
-              </h3>
-
-              <p><strong>Name:</strong> {openedLoan.name}</p>
-              <p><strong>Amount:</strong> Ksh {openedLoan.amount.toLocaleString()}</p>
-
-              <div className="mt-4">
-                <label className="font-semibold">Status</label>
-                <select
-                  className="border w-full px-3 py-2 rounded mt-1"
-                  defaultValue={openedLoan.status}
-                  onChange={(e) => updateLoanStatus(openedLoan.id, e.target.value)}
-                >
-                  {statusOptions.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="mt-4">
-                <label className="font-semibold">Work Step</label>
-                <select
-                  className="border w-full px-3 py-2 rounded mt-1"
-                  defaultValue={openedLoan.workStep}
-                  onChange={(e) => updateWorkStep(openedLoan.id, e.target.value)}
-                >
-                  {workStepOptions.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={() => setOpenedLoan(null)}
-                  className="px-4 py-2 bg-gray-500 text-white rounded"
-                >
-                  Close
-                </button>
-              </div>
-
-            </div>
-          </div>
-        )}
-
-      </div>
+      <style jsx>{`
+        .bank-table-row-light {
+          background: #ffffff;
+        }
+        .bank-table-row-dark {
+          background: #f5f5f7;
+        }
+        .ant-table-thead > tr > th {
+          background: #f0f5ff !important;
+          font-weight: 600;
+          color: #001529;
+        }
+        .ant-table-tbody > tr:hover > td {
+          background: #e6f7ff !important;
+        }
+      `}</style>
     </div>
   );
-}
+};
 
 export default MyQueue;
+

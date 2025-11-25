@@ -2,7 +2,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
-  Home,
   Users,
   ListCheck,
   Clock,
@@ -23,17 +22,13 @@ const Sidebar = () => {
       {/* Logo / Brand */}
       <div>
         <h2 className="text-2xl font-bold mb-4">CO Dashboard</h2>
-        
 
         {/* Navigation */}
         <nav className="space-y-4">
-          <NavLink to="/dashboard" className={linkClass}>
-            <Home size={12} className="text-gray-200" />
-            Dashboard
-          </NavLink>
+          {/* Dashboard button removed */}
+          {/* Active button removed */}
 
           <NavLink to="/checklists" className={linkClass}>
-            {/* CirclePlus icon for “Create New DCL” */}
             <CirclePlus size={12} className="text-gray-200" />
             Create New DCL
           </NavLink>
@@ -41,11 +36,6 @@ const Sidebar = () => {
           <NavLink to="/myqueue" className={linkClass}>
             <Users size={12} className="text-gray-200" />
             My Queue
-          </NavLink>
-
-          <NavLink to="/active" className={linkClass}>
-            <ListCheck size={12} className="text-gray-200" />
-            Active 
           </NavLink>
 
           <NavLink to="/deferrals" className={linkClass}>
@@ -77,6 +67,9 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+
+
+
 
 
 

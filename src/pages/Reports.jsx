@@ -11,7 +11,13 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
+import { Row, Col, Card, Typography } from "antd";
+
+const { Title, Text } = Typography;
 
 const monthlyChecklistStats = [
   { month: "Jan", Completed: 120, Pending: 40, Deferred: 20 },
@@ -21,9 +27,96 @@ const monthlyChecklistStats = [
   { month: "May", Completed: 240, Pending: 70, Deferred: 30 },
 ];
 
+const cardsData = [
+  {
+    title: "Total Checklists",
+    value: 695,
+    subText: "+12% this month",
+    borderColor: "#3A2A82",
+    textColor: "#3A2A82",
+  },
+  {
+    title: "Pending Checklists",
+    value: 180,
+    subText: "RM follow-up required",
+    borderColor: "#C8A854",
+    textColor: "#C8A854",
+  },
+  {
+    title: "Deferred Requests",
+    value: 95,
+    subText: "Awaiting additional docs",
+    borderColor: "#FF6B3D",
+    textColor: "#FF6B3D",
+  },
+];
+
+const pieData = [
+  { name: "Completed", value: 420 },
+  { name: "Pending", value: 180 },
+  { name: "Deferred", value: 95 },
+];
+
+const COLORS = ["#3A2A82", "#C8A854", "#FF6B3D"];
+
 const Reports = () => {
   return (
     <div style={{ padding: 20 }}>
+      {/* CARDS */}
+      <Row gutter={16} style={{ marginBottom: 30 }}>
+        {cardsData.map(({ title, value, subText, borderColor, textColor }) => (
+          <Col key={title} span={8}>
+            <Card
+              style={{
+                borderLeft: `5px solid ${borderColor}`,
+                borderRadius: 8,
+                background: "#fff",
+              }}
+            >
+              <Text type="secondary">{title}</Text>
+              <Title level={3} style={{ margin: 0 }}>
+                {value}
+              </Title>
+              <Text strong style={{ color: textColor }}>
+                {subText}
+              </Text>
+            </Card>
+          </Col>
+        ))}
+      </Row>
+
+      {/* PIE CHART */}
+      <div
+        style={{
+          background: "#fff",
+          padding: 20,
+          borderRadius: 8,
+          boxShadow: "0px 2px 8px rgba(0,0,0,0.06)",
+          maxWidth: 700,
+          marginBottom: 40,
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
+      >
+        <h3 style={{ textAlign: "center", color: "#3A2A82", marginBottom: 20 }}>
+          Checklist Status Breakdown
+        </h3>
+
+        <ResponsiveContainer width="100%" height={300}>
+          <PieChart>
+            <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={120} label>
+              {pieData.map((entry, index) => (
+                <Cell key={index} fill={COLORS[index]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* EXISTING CHARTS */}
+
       <div
         style={{
           display: "flex",
