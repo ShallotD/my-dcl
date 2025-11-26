@@ -6,10 +6,10 @@ import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
 
-// ---------------- MOCK DATA ----------------
 const MOCK_CHECKLISTS = [
   {
     _id: "1",
+    loanNo: "LN1001",
     applicantName: "Alice Johnson",
     loanType: "Home Loan",
     createdAt: new Date().toISOString(),
@@ -21,6 +21,7 @@ const MOCK_CHECKLISTS = [
   },
   {
     _id: "2",
+    loanNo: "LN1002",
     applicantName: "Bob Smith",
     loanType: "Car Loan",
     createdAt: new Date().toISOString(),
@@ -32,6 +33,7 @@ const MOCK_CHECKLISTS = [
   },
   {
     _id: "3",
+    loanNo: "LN1003",
     applicantName: "Catherine Mwangi",
     loanType: "Personal Loan",
     createdAt: new Date().toISOString(),
@@ -43,6 +45,7 @@ const MOCK_CHECKLISTS = [
   },
   {
     _id: "4",
+    loanNo: "LN1004",
     applicantName: "Daniel Kimani",
     loanType: "Business Loan",
     createdAt: new Date().toISOString(),
@@ -54,6 +57,7 @@ const MOCK_CHECKLISTS = [
   },
   {
     _id: "5",
+    loanNo: "LN1005",
     applicantName: "Eva Njoroge",
     loanType: "Mortgage",
     createdAt: new Date().toISOString(),
@@ -65,6 +69,7 @@ const MOCK_CHECKLISTS = [
   },
   {
     _id: "6",
+    loanNo: "LN1006",
     applicantName: "Frank Otieno",
     loanType: "SME Loan",
     createdAt: new Date().toISOString(),
@@ -76,6 +81,7 @@ const MOCK_CHECKLISTS = [
   },
   {
     _id: "7",
+    loanNo: "LN1007",
     applicantName: "Grace Wanjiru",
     loanType: "Car Loan",
     createdAt: new Date().toISOString(),
@@ -87,6 +93,7 @@ const MOCK_CHECKLISTS = [
   },
   {
     _id: "8",
+    loanNo: "LN1008",
     applicantName: "Henry Kariuki",
     loanType: "Home Loan",
     createdAt: new Date().toISOString(),
@@ -106,16 +113,25 @@ const MyQueue = () => {
   const [rmFilter, setRmFilter] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
 
-  // ---------------- FILTERED DATA ----------------
   const filteredData = useMemo(() => {
     return checklists
-      .filter(item =>
-        searchText ? item.applicantName.toLowerCase().includes(searchText.toLowerCase()) : true
-      )
-      .filter(item => (rmFilter ? item.rmId?._id === rmFilter : true))
+      .filter(item => {
+        if (!searchText) return true;
+        return (
+          item.applicantName.toLowerCase().includes(searchText.toLowerCase()) ||
+          item.loanNo.toLowerCase().includes(searchText.toLowerCase())
+        );
+      })
+      .filter(item => (rmFilter ? item.rmId._id === rmFilter : true))
       .filter(item => {
         if (!statusFilter) return true;
-        return item.documents.some(d => d.status === statusFilter);
+        // Example: match status filter — you may refine logic as needed
+        const docs = item.documents;
+        const allApproved = docs.every(d => d.status === "Approved");
+        const anyDeferred = docs.some(d => d.status === "Deferred");
+        const anyPending = docs.some(d => d.status === "Pending");
+        let status = allApproved ? "Ready" : anyDeferred || anyPending ? "Pending" : "New";
+        return status === statusFilter;
       });
   }, [checklists, searchText, rmFilter, statusFilter]);
 
@@ -128,25 +144,28 @@ const MyQueue = () => {
     ).values(),
   ];
 
-  // ---------------- ACTIONS ----------------
-  const handleApproveAll = (row) => {
-    const allReady = row.documents.every(d => d.status === "Submitted" || d.status === "Deferred");
+  const handleApproveAll = row => {
+    const allReady = row.documents.every(
+      d => d.status === "Submitted" || d.status === "Deferred"
+    );
     if (!allReady) {
       message.warning("Some documents are not ready to approve.");
       return;
     }
-
     setChecklists(prev =>
       prev.map(item =>
         item._id === row._id
-          ? { ...item, documents: item.documents.map(d => ({ ...d, status: "Approved" })) }
+          ? {
+              ...item,
+              documents: item.documents.map(d => ({ ...d, status: "Approved" })),
+            }
           : item
       )
     );
     message.success(`All documents for ${row.applicantName} approved and forwarded to Checker.`);
   };
 
-  const handleReturnToRM = (row) => {
+  const handleReturnToRM = row => {
     setChecklists(prev =>
       prev.map(item =>
         item._id === row._id
@@ -162,25 +181,30 @@ const MyQueue = () => {
     message.info(`Checklist for ${row.applicantName} returned to RM for action.`);
   };
 
-  // ---------------- TABLE COLUMNS ----------------
   const columns = [
     {
+      title: "Loan No.",
+      dataIndex: "loanNo",
+      key: "loanNo",
+      width: 120,
+    },
+    {
       title: "Applicant",
-      render: (_, row) => (
-        <div style={{ fontWeight: 600 }}>
-          {row.applicantName}
-          <div style={{ fontSize: 12, color: "#888" }}>
-            RM: {row.rmId.firstName} {row.rmId.lastName}
-          </div>
-        </div>
-      ),
+      key: "applicant",
+      render: (_, row) => <div>{row.applicantName}</div>,
+      width: 180,
     },
     {
       title: "Loan Type",
-      render: (_, row) => <Tag color="purple">{row.loanType}</Tag>,
+      dataIndex: "loanType",
+      key: "loanType",
+      width: 130,
+      render: v => <Tag color="purple">{v}</Tag>,
     },
     {
       title: "Progress",
+      key: "progress",
+      width: 140,
       render: (_, row) => {
         const docs = row.documents;
         const approved = docs.filter(d => d.status === "Approved").length;
@@ -189,47 +213,66 @@ const MyQueue = () => {
       },
     },
     {
-      title: "Deferred",
+      title: "RM",
+      key: "rm",
+      width: 150,
+      render: (_, row) => `${row.rmId.firstName} ${row.rmId.lastName}`,
+    },
+    {
+      title: "Status",
+      key: "status",
+      width: 120,
       render: (_, row) => {
-        const deferred = row.documents.filter(d => d.status === "Deferred").length;
-        return <Tag color="orange">{deferred}</Tag>;
+        const docs = row.documents;
+        if (docs.every(d => d.status === "Approved")) return "Ready";
+        if (docs.some(d => d.status === "Deferred" || d.status === "Pending"))
+          return "Pending";
+        return "New";
       },
     },
     {
-      title: "Created",
-      dataIndex: "createdAt",
-      sorter: (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-      render: date => new Date(date).toLocaleString(),
-    },
-    {
       title: "Actions",
+      key: "actions",
+      width: 120,
       render: (_, row) => (
         <Dropdown
           menu={{
             items: [
-              { key: "view", label: "Review Checklist", onClick: () => navigate(`/creator/review/${row._id}`) },
-              { key: "approve", label: "Approve All", onClick: () => handleApproveAll(row) },
-              { key: "return", label: "Return to RM", onClick: () => handleReturnToRM(row) },
+              {
+                key: "view",
+                label: "Review Checklist",
+                onClick: () => navigate(`/creator/review/${row._id}`),
+              },
+              {
+                key: "approve",
+                label: "Approve All",
+                onClick: () => handleApproveAll(row),
+              },
+              {
+                key: "return",
+                label: "Return to RM",
+                onClick: () => handleReturnToRM(row),
+              },
             ],
           }}
           trigger={["click"]}
         >
-          <Button icon={<MoreOutlined />} />
+          <Button icon={<MoreOutlined />} size="small" />
         </Dropdown>
       ),
     },
   ];
 
   return (
-    <div className="p-6 w-full">
-      <h1 className="text-2xl font-bold mb-4">My Queue</h1>
+    <div className="bg-white p-5 rounded-lg shadow">
+      <h2 style={{ marginBottom: 16 }}>My Queue</h2>
 
-      <Space className="mb-4">
+      <Space style={{ marginBottom: 16 }} wrap>
         <Search
-          placeholder="Search applicant"
+          placeholder="Search by Loan / Customer"
           allowClear
           onChange={e => setSearchText(e.target.value)}
-          style={{ width: 200 }}
+          style={{ width: 220 }}
         />
         <Select
           placeholder="Filter by RM"
@@ -243,11 +286,9 @@ const MyQueue = () => {
           allowClear
           style={{ width: 180 }}
           options={[
-            { label: "Submitted", value: "Submitted" },
+            { label: "Ready", value: "Ready" },
             { label: "Pending", value: "Pending" },
-            { label: "Deferred", value: "Deferred" },
-            { label: "Approved", value: "Approved" },
-            { label: "Returned", value: "Returned" },
+            { label: "New", value: "New" },
           ]}
           onChange={setStatusFilter}
         />
@@ -257,6 +298,7 @@ const MyQueue = () => {
         columns={columns}
         dataSource={filteredData}
         rowKey="_id"
+        size="small"
         bordered
         pagination={{ pageSize: 6 }}
       />

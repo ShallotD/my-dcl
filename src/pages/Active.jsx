@@ -153,7 +153,7 @@ const Active = () => {
   ];
 
   return (
-    <div className="bg-white p-5 rounded-lg shadow">
+    <div style={{ padding: 16 }}>
       <Title level={4}>Active Checklists (Awaiting RM Action)</Title>
 
       <Space style={{ marginBottom: 12 }}>
