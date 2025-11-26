@@ -1,9 +1,9 @@
 // src/pages/CreatorReview.jsx
-import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button, Tag, Space, message, Modal, Input } from "antd";
 
-// 🔵 MOCK DATA — replace with API later
+// 🔵 OPTIONAL STATIC MOCK (fallback) — extend this if you want default data
 const CHECKLIST_DATA = {
   "1": {
     applicantName: "Alice Johnson",
@@ -45,22 +45,27 @@ const CHECKLIST_DATA = {
       { name: "ID Proof", status: "Submitted", url: "/docs/id-eva.pdf" },
     ],
   },
+  // You can optionally add static entries for "6", "7", "8" too — but not needed if navigation passes full data.
 };
 
 const CreatorReview = () => {
-  const { checklistId } = useParams(); // Use correct param
+  const { checklistId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const checklist = CHECKLIST_DATA[checklistId];
+  // Prefer state passed via navigation (from MyQueue), else fallback to static mock
+  const initialChecklist = location.state?.checklist || CHECKLIST_DATA[checklistId];
 
-  const [documents, setDocuments] = useState(checklist?.documents || []);
+  const [documents, setDocuments] = useState(initialChecklist?.documents || []);
+  
   const [rejectModal, setRejectModal] = useState({
     visible: false,
     docName: "",
     reason: "",
   });
 
-  if (!checklist) {
+  // If no checklist found at all (state + mock), show error
+  if (!initialChecklist) {
     return (
       <p className="p-6 text-red-600">
         Checklist not found — invalid ID ({checklistId})
@@ -68,20 +73,22 @@ const CreatorReview = () => {
     );
   }
 
+  const { applicantName, loanType } = initialChecklist;
+
   const updateDocumentStatus = (docName, status, reason = "") => {
-    setDocuments((prev) =>
-      prev.map((doc) =>
+    setDocuments(prev =>
+      prev.map(doc =>
         doc.name === docName ? { ...doc, status, reason } : doc
       )
     );
   };
 
-  const handleApprove = (docName) => {
+  const handleApprove = docName => {
     updateDocumentStatus(docName, "Approved");
     message.success(`${docName} approved`);
   };
 
-  const handleReject = (docName) => {
+  const handleReject = docName => {
     setRejectModal({ visible: true, docName, reason: "" });
   };
 
@@ -97,16 +104,16 @@ const CreatorReview = () => {
   };
 
   const handleReturnToRM = () => {
-    const updatedDocs = documents.map((d) =>
+    const updated = documents.map(d =>
       d.status !== "Approved" ? { ...d, status: "Returned" } : d
     );
-    setDocuments(updatedDocs);
+    setDocuments(updated);
     message.warning("Checklist returned to RM for correction.");
     navigate("/myqueue");
   };
 
   const handleForwardToChecker = () => {
-    const pending = documents.filter((d) => d.status !== "Approved");
+    const pending = documents.filter(d => d.status !== "Approved");
     if (pending.length > 0) {
       message.error("Cannot forward — all documents must be approved.");
       return;
@@ -123,18 +130,17 @@ const CreatorReview = () => {
 
       <h1 className="text-2xl font-bold mb-2">Review Checklist</h1>
       <p className="text-lg text-gray-700 mb-4">
-        {checklist.applicantName} — {checklist.loanType}
+        {applicantName} — {loanType}
       </p>
 
       <div className="space-y-4">
-        {documents.map((doc) => (
+        {documents.map(doc => (
           <div
             key={doc.name}
             className="p-4 rounded bg-gray-100 flex justify-between items-center"
           >
             <div>
               <p className="font-semibold">{doc.name}</p>
-
               <Tag
                 color={
                   doc.status === "Approved"
@@ -150,18 +156,18 @@ const CreatorReview = () => {
               >
                 {doc.status}
               </Tag>
-
               {doc.reason && (
                 <p className="text-sm text-red-600">Reason: {doc.reason}</p>
               )}
             </div>
 
             <Space>
-              <a href={doc.url} target="_blank" rel="noreferrer">
-                <Button>View</Button>
-              </a>
-
-              {doc.status === "Submitted" || doc.status === "Deferred" ? (
+              {doc.url && (
+                <a href={doc.url} target="_blank" rel="noreferrer">
+                  <Button>View</Button>
+                </a>
+              )}
+              {(doc.status === "Submitted" || doc.status === "Deferred") ? (
                 <>
                   <Button type="primary" onClick={() => handleApprove(doc.name)}>
                     Approve
@@ -179,9 +185,7 @@ const CreatorReview = () => {
       </div>
 
       <div className="mt-6 flex gap-4">
-        <Button danger onClick={handleReturnToRM}>
-          Return to RM
-        </Button>
+        <Button danger onClick={handleReturnToRM}>Return to RM</Button>
         <Button type="primary" onClick={handleForwardToChecker}>
           Forward to Checker
         </Button>
@@ -197,7 +201,7 @@ const CreatorReview = () => {
           rows={4}
           placeholder="Enter rejection reason"
           value={rejectModal.reason}
-          onChange={(e) =>
+          onChange={e =>
             setRejectModal({ ...rejectModal, reason: e.target.value })
           }
         />

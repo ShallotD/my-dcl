@@ -1,7 +1,6 @@
 // src/pages/MyQueue.jsx
 import React, { useState, useMemo } from "react";
-import { Table, Tag, Button, Input, Select, Space, Progress, Dropdown, message } from "antd";
-import { MoreOutlined } from "@ant-design/icons";
+import { Table, Tag, Input, Select, Space, Progress } from "antd";
 import { useNavigate } from "react-router-dom";
 
 const { Search } = Input;
@@ -15,8 +14,8 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm1", firstName: "John", lastName: "Mwangi" },
     documents: [
-      { name: "Employment Letter", status: "Submitted" },
-      { name: "Bank Statement", status: "Deferred" },
+      { name: "Employment Letter", status: "Submitted", url: "/docs/employment-letter.pdf" },
+      { name: "Bank Statement", status: "Deferred", url: "/docs/bank-statement.pdf" },
     ],
   },
   {
@@ -27,8 +26,8 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm2", firstName: "Sarah", lastName: "Kamau" },
     documents: [
-      { name: "Driver’s License", status: "Submitted" },
-      { name: "Income Certificate", status: "Submitted" },
+      { name: "Driver’s License", status: "Submitted", url: "/docs/drivers-license.pdf" },
+      { name: "Income Certificate", status: "Submitted", url: "/docs/income-certificate.pdf" },
     ],
   },
   {
@@ -39,8 +38,8 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm3", firstName: "David", lastName: "Otieno" },
     documents: [
-      { name: "Passport", status: "Submitted" },
-      { name: "Salary Slip", status: "Submitted" },
+      { name: "Passport", status: "Submitted", url: "/docs/passport.pdf" },
+      { name: "Salary Slip", status: "Submitted", url: "/docs/salary-slip.pdf" },
     ],
   },
   {
@@ -51,8 +50,8 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm4", firstName: "Grace", lastName: "Njeri" },
     documents: [
-      { name: "Business Registration", status: "Pending" },
-      { name: "Bank Statement", status: "Deferred" },
+      { name: "Business Registration", status: "Pending", url: "/docs/business-reg.pdf" },
+      { name: "Bank Statement", status: "Deferred", url: "/docs/bank-statement.pdf" },
     ],
   },
   {
@@ -63,8 +62,8 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm5", firstName: "Peter", lastName: "Mwangi" },
     documents: [
-      { name: "Property Deed", status: "Submitted" },
-      { name: "ID Proof", status: "Submitted" },
+      { name: "Property Deed", status: "Submitted", url: "/docs/property-deed.pdf" },
+      { name: "ID Proof", status: "Submitted", url: "/docs/id-eva.pdf" },
     ],
   },
   {
@@ -75,8 +74,8 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm6", firstName: "Lydia", lastName: "Ndegwa" },
     documents: [
-      { name: "KRA Pin", status: "Submitted" },
-      { name: "CR12", status: "Pending" },
+      { name: "KRA Pin", status: "Submitted", url: "/docs/kra-pin.pdf" },
+      { name: "CR12", status: "Pending", url: "/docs/cr12.pdf" },
     ],
   },
   {
@@ -87,8 +86,8 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm2", firstName: "Sarah", lastName: "Kamau" },
     documents: [
-      { name: "Driver’s License", status: "Deferred" },
-      { name: "Insurance Document", status: "Submitted" },
+      { name: "Driver’s License", status: "Deferred", url: "/docs/license.pdf" },
+      { name: "Insurance Document", status: "Submitted", url: "/docs/insurance.pdf" },
     ],
   },
   {
@@ -99,16 +98,16 @@ const MOCK_CHECKLISTS = [
     createdAt: new Date().toISOString(),
     rmId: { _id: "rm1", firstName: "John", lastName: "Mwangi" },
     documents: [
-      { name: "ID Proof", status: "Submitted" },
-      { name: "Salary Slip", status: "Submitted" },
-      { name: "Bank Statement", status: "Pending" },
+      { name: "ID Proof", status: "Submitted", url: "/docs/id-proof.pdf" },
+      { name: "Salary Slip", status: "Submitted", url: "/docs/salary-slip.pdf" },
+      { name: "Bank Statement", status: "Pending", url: "/docs/bank-statement.pdf" },
     ],
   },
 ];
 
 const MyQueue = () => {
   const navigate = useNavigate();
-  const [checklists, setChecklists] = useState(MOCK_CHECKLISTS);
+  const [checklists] = useState(MOCK_CHECKLISTS);
   const [searchText, setSearchText] = useState("");
   const [rmFilter, setRmFilter] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
@@ -125,12 +124,13 @@ const MyQueue = () => {
       .filter(item => (rmFilter ? item.rmId._id === rmFilter : true))
       .filter(item => {
         if (!statusFilter) return true;
-        // Example: match status filter — you may refine logic as needed
         const docs = item.documents;
         const allApproved = docs.every(d => d.status === "Approved");
         const anyDeferred = docs.some(d => d.status === "Deferred");
         const anyPending = docs.some(d => d.status === "Pending");
-        let status = allApproved ? "Ready" : anyDeferred || anyPending ? "Pending" : "New";
+        const status = allApproved
+          ? "Ready"
+          : (anyDeferred || anyPending ? "Pending" : "New");
         return status === statusFilter;
       });
   }, [checklists, searchText, rmFilter, statusFilter]);
@@ -144,63 +144,10 @@ const MyQueue = () => {
     ).values(),
   ];
 
-  const handleApproveAll = row => {
-    const allReady = row.documents.every(
-      d => d.status === "Submitted" || d.status === "Deferred"
-    );
-    if (!allReady) {
-      message.warning("Some documents are not ready to approve.");
-      return;
-    }
-    setChecklists(prev =>
-      prev.map(item =>
-        item._id === row._id
-          ? {
-              ...item,
-              documents: item.documents.map(d => ({ ...d, status: "Approved" })),
-            }
-          : item
-      )
-    );
-    message.success(`All documents for ${row.applicantName} approved and forwarded to Checker.`);
-  };
-
-  const handleReturnToRM = row => {
-    setChecklists(prev =>
-      prev.map(item =>
-        item._id === row._id
-          ? {
-              ...item,
-              documents: item.documents.map(d =>
-                d.status !== "Approved" ? { ...d, status: "Returned" } : d
-              ),
-            }
-          : item
-      )
-    );
-    message.info(`Checklist for ${row.applicantName} returned to RM for action.`);
-  };
-
   const columns = [
-    {
-      title: "Loan No.",
-      dataIndex: "loanNo",
-      key: "loanNo",
-      width: 120,
-    },
-    {
-      title: "Applicant",
-      key: "applicant",
-      render: (_, row) => <div>{row.applicantName}</div>,
-      width: 180,
-    },
-    {
-      title: "Loan Type",
-      dataIndex: "loanType",
-      key: "loanType",
-      width: 130,
-      render: v => <Tag color="purple">{v}</Tag>,
-    },
+    { title: "Loan No.", dataIndex: "loanNo", key: "loanNo", width: 120 },
+    { title: "Applicant", key: "applicant", render: (_, row) => <div>{row.applicantName}</div>, width: 180 },
+    { title: "Loan Type", dataIndex: "loanType", key: "loanType", width: 130, render: v => <Tag color="purple">{v}</Tag> },
     {
       title: "Progress",
       key: "progress",
@@ -212,12 +159,7 @@ const MyQueue = () => {
         return <Progress percent={percent} size="small" />;
       },
     },
-    {
-      title: "RM",
-      key: "rm",
-      width: 150,
-      render: (_, row) => `${row.rmId.firstName} ${row.rmId.lastName}`,
-    },
+    { title: "RM", key: "rm", width: 150, render: (_, row) => `${row.rmId.firstName} ${row.rmId.lastName}` },
     {
       title: "Status",
       key: "status",
@@ -225,41 +167,9 @@ const MyQueue = () => {
       render: (_, row) => {
         const docs = row.documents;
         if (docs.every(d => d.status === "Approved")) return "Ready";
-        if (docs.some(d => d.status === "Deferred" || d.status === "Pending"))
-          return "Pending";
+        if (docs.some(d => d.status === "Deferred" || d.status === "Pending")) return "Pending";
         return "New";
       },
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      width: 120,
-      render: (_, row) => (
-        <Dropdown
-          menu={{
-            items: [
-              {
-                key: "view",
-                label: "Review Checklist",
-                onClick: () => navigate(`/creator/review/${row._id}`),
-              },
-              {
-                key: "approve",
-                label: "Approve All",
-                onClick: () => handleApproveAll(row),
-              },
-              {
-                key: "return",
-                label: "Return to RM",
-                onClick: () => handleReturnToRM(row),
-              },
-            ],
-          }}
-          trigger={["click"]}
-        >
-          <Button icon={<MoreOutlined />} size="small" />
-        </Dropdown>
-      ),
     },
   ];
 
@@ -301,6 +211,12 @@ const MyQueue = () => {
         size="small"
         bordered
         pagination={{ pageSize: 6 }}
+        onRow={record => ({
+          onClick: () => {
+            navigate(`/creator/review/${record._id}`, { state: { checklist: record } });
+          },
+          style: { cursor: "pointer" },
+        })}
       />
     </div>
   );
