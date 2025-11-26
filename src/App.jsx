@@ -13,7 +13,8 @@ import Deferrals from "./pages/Deferrals";
 import Completed from "./pages/Completed";
 import Active from "./pages/Active";
 import Reports from "./pages/Reports";
-import CreatorReview from "./pages/CreatorReview"; // 🔵 Creator Review page
+import CreatorReview from "./pages/CreatorReview"; 
+import ChecklistReview from "./pages/ChecklistReview";
 
 export default function App() {
   const [showModal, setShowModal] = useState(false);
@@ -55,6 +56,9 @@ export default function App() {
 
         {/* Reports */}
         <Route path="/reports" element={<Reports />} />
+
+        {/* Checklist Review */}
+        <Route path="/checklist/review" element={<ChecklistReview />} />
 
         {/* Home */}
         <Route path="/home" element={<Home />} />
