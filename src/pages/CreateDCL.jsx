@@ -608,7 +608,7 @@ const CreateDCL = () => {
         {selectedLoanType && (
           <div className="text-center">
             <Button type="primary" size="large" onClick={handleSave}>
-              Save Checklist
+              Review Checklist
             </Button>
           </div>
         )}

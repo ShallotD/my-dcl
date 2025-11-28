@@ -170,11 +170,11 @@ const ChecklistReview = () => {
 
       <div className="text-center mt-8">
         <Button onClick={() => navigate("/")} size="large">
-          Back to Edit
+          Edit Checklist
         </Button>
 
         <Button type="primary" size="large" className="ml-4" onClick={handleFinalSubmit}>
-          Submit Checklist
+          Submit to RM
         </Button>
       </div>
 
