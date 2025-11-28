@@ -8,7 +8,11 @@ const ChecklistReview = () => {
 
   const saved = JSON.parse(localStorage.getItem("savedChecklist"));
   const [checklist, setChecklist] = useState(saved?.checklist || []);
-  const [deferralModal, setDeferralModal] = useState({ open: false, catIdx: null, docIdx: null });
+  const [deferralModal, setDeferralModal] = useState({
+    open: false,
+    catIdx: null,
+    docIdx: null,
+  });
   const [deferralComment, setDeferralComment] = useState("");
 
   if (!saved) {
@@ -22,24 +26,30 @@ const ChecklistReview = () => {
     );
   }
 
-  const { loanType } = saved;
+  const {
+    loanType,
+    createdBy,
+    customerNumber,
+    customerName,
+    rmName,
+    dclNumber,
+  } = saved;
 
   // File Upload
   const handleFileUpload = (catIdx, docIdx, file) => {
     const updated = [...checklist];
     updated[catIdx].selectedDocuments[docIdx].file = file;
-
     setChecklist(updated);
     message.success("File uploaded");
   };
 
-  // Open deferral modal
+  // Deferral modal open
   const openDeferralModal = (catIdx, docIdx) => {
     setDeferralModal({ open: true, catIdx, docIdx });
     setDeferralComment("");
   };
 
-  // Save deferral with comment
+  // Deferral submit
   const submitDeferral = () => {
     if (!deferralComment.trim()) {
       message.error("Please add a deferral comment.");
@@ -51,16 +61,33 @@ const ChecklistReview = () => {
 
     updated[catIdx].selectedDocuments[docIdx].deferralRequested = true;
     updated[catIdx].selectedDocuments[docIdx].deferralComment = deferralComment;
+    updated[catIdx].selectedDocuments[docIdx].status = "Deferred";
+    updated[catIdx].selectedDocuments[docIdx].action = "Deferral";
 
     setChecklist(updated);
-
     setDeferralModal({ open: false, catIdx: null, docIdx: null });
     setDeferralComment("");
 
     message.success("Deferral requested");
   };
 
-  // Build Table
+  // STATUS COLOR FUNCTION
+  const statusColor = (status) =>
+    status === "Submitted"
+      ? "green"
+      : status === "Pending"
+      ? "red"
+      : status === "TBO"
+      ? "brown"
+      : status === "Sighted"
+      ? "orange"
+      : status === "Waived"
+      ? "gray"
+      : status === "Deferred"
+      ? "brown"
+      : "gray";
+
+  // Build table data
   const tableData = [];
   checklist.forEach((cat, catIdx) => {
     tableData.push({
@@ -74,11 +101,8 @@ const ChecklistReview = () => {
         key: `doc-${catIdx}-${docIdx}`,
         category: "",
         docName: doc.name,
-
-        // Convert Approve/Reject to Submitted/Pending
-        action: doc.action === "Approve" ? "Submitted" : "Pending",
-
-        comment: doc.comment,
+        status: doc.status || "",
+        comment: doc.comment || "",
         file: doc.file,
         deferralRequested: doc.deferralRequested,
         deferralComment: doc.deferralComment,
@@ -94,20 +118,19 @@ const ChecklistReview = () => {
       title: "Document",
       dataIndex: "docName",
       render: (text, record) =>
-        !record.isCategory ? text : <b style={{ fontSize: "15px" }}>{record.category}</b>,
+        !record.isCategory ? (
+          text
+        ) : (
+          <b style={{ fontSize: "15px" }}>{record.category}</b>
+        ),
     },
     {
-      title: "Action",
-      dataIndex: "action",
+      title: "Status",
+      dataIndex: "status",
       render: (text, record) =>
         !record.isCategory ? (
-          <span
-            style={{
-              color: text === "Submitted" ? "green" : "red",
-              fontWeight: 600,
-            }}
-          >
-            {text}
+          <span style={{ color: statusColor(text), fontWeight: 600 }}>
+            {text || "—"}
           </span>
         ) : (
           ""
@@ -152,8 +175,19 @@ const ChecklistReview = () => {
   ];
 
   const handleFinalSubmit = () => {
-    message.success("Checklist submitted successfully!");
+    // Prevent submit if any document has no action/status
+    const incomplete = checklist.some((cat) =>
+      cat.selectedDocuments.some((doc) => !doc.status || doc.status === "")
+    );
 
+    if (incomplete) {
+      message.error(
+        "Cannot submit checklist. All selected documents must have an action/status."
+      );
+      return;
+    }
+
+    message.success("Checklist submitted successfully!");
     localStorage.removeItem("savedChecklist");
     navigate("/");
   };
@@ -166,14 +200,37 @@ const ChecklistReview = () => {
         Loan Type: <span className="text-blue-600">{loanType}</span>
       </h2>
 
+      {/* User info display */}
+      <div className="mb-6">
+        <p>
+          <strong>Created By:</strong> {createdBy}
+        </p>
+        <p>
+          <strong>Customer Number:</strong> {customerNumber}
+        </p>
+        <p>
+          <strong>Customer Name:</strong> {customerName}
+        </p>
+        <p>
+          <strong>RM Name:</strong> {rmName}
+        </p>
+        <p>
+          <strong>DCL Number:</strong> {dclNumber}
+        </p>
+      </div>
+
       <Table columns={columns} dataSource={tableData} pagination={false} bordered />
 
       <div className="text-center mt-8">
         <Button onClick={() => navigate("/")} size="large">
           Edit Checklist
         </Button>
-
-        <Button type="primary" size="large" className="ml-4" onClick={handleFinalSubmit}>
+        <Button
+          type="primary"
+          size="large"
+          className="ml-4"
+          onClick={handleFinalSubmit}
+        >
           Submit to RM
         </Button>
       </div>
@@ -184,7 +241,10 @@ const ChecklistReview = () => {
         open={deferralModal.open}
         onCancel={() => setDeferralModal({ open: false })}
         footer={[
-          <Button key="cancel" onClick={() => setDeferralModal({ open: false })}>
+          <Button
+            key="cancel"
+            onClick={() => setDeferralModal({ open: false })}
+          >
             Cancel
           </Button>,
           <Button key="submit" type="primary" onClick={submitDeferral}>
@@ -205,3 +265,6 @@ const ChecklistReview = () => {
 };
 
 export default ChecklistReview;
+
+
+

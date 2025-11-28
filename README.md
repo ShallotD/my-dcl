@@ -69,3 +69,108 @@ If approved → sent to Checker.
 🟩 4. Credit Operations (Checker) – Final Approval
 
 Performs final validation and marks the workflow as Completed.
+
+
+
+✅ CREDIT OPERATIONS (CREATOR) — FINAL PAGE STRUCTURE
+It will have 6 pages:
+1. CreateDCL.jsx  
+2. MyQueue.jsx  
+3. Active.jsx  
+4. Completed.jsx  
+5. Deferrals.jsx  
+6. Reports.jsx
+
+Below is the full specification for each page.
+________________________________________
+🟦 1. CreateDCL.jsx
+Purpose:
+•	Create new Document Checklist
+•	Select customer, loan type, required documents
+•	Submit → goes to RM (status: pending_rm)
+
+Actions:
+•	Add/remove document requirements
+•	Save as draft or Submit
+•	Auto-generate Workstep No (optional)
+
+Status Created:
+draft
+pending_rm
+You already have this — we can enhance later.
+________________________________________
+🟩 2. MyQueue.jsx
+This page is ONLY for Creator’s incoming work.
+It will have two sections:
+________________________________________
+SECTION A — CURRENT QUEUE
+➡️ Items submitted by RM
+Status = pending_creator_review
+Creator sees:
+•	Customer No
+•	Workstep
+•	RM Uploads
+•	Checklist designed earlier
+•	Time of submission
+•	Button: Review → opens CreatorReview page
+________________________________________
+SECTION B — PREVIOUS QUEUE
+➡️ Items declined by Checker
+Status = returned_by_checker
+Creator must re-evaluate:
+•	Possibly re-send to RM
+•	Update checklist
+•	Add missing information
+________________________________________
+Additionally:
+✔️ Auto-load all checklist items as originally created
+When the Creator opens an item:
+•	Show original checklist (from CreateDCL)
+•	Show RM uploaded files next to each requirement
+________________________________________
+🟧 3. Active.jsx
+This page shows all DCLs the Creator has already processed but NOT yet approved by Checker.
+
+Includes:
+•	Workflows waiting for checker → pending_checker
+•	Incomplete DCLs (e.g. some documents missing) → incomplete
+•	Items waiting for 2nd/3rd document sets (e.g. legal, risk input)
+
+Filters / Search:
+•	Search by Customer No or Workstep
+•	Dropdown filter:
+o	All
+o	Pending checker
+o	Incomplete
+o	Returned by checker (optional)
+Purpose:
+Let the creator monitor all workflows they have escalated but not completed.
+________________________________________
+🟦 4. Completed.jsx
+Shows DCLs fully approved by the checker.
+
+Status = completed
+A simple table:
+•	Workstep
+•	Customer No
+•	Loan type
+•	Checklist summary
+•	Date completed
+•	View button (document view only)
+No actions — view-only.
+________________________________________
+🟨 5. Deferrals.jsx — MOST IMPORTANT PAGE
+Holds approved deferrals that now require the Creator to review.
+
+Status = deferral_pending_creator_review
+
+DEFERRALS TABLE COLUMNS:
+Column	                Meaning
+Customer No	            Customer identifier
+Workstep	            Unique workflow
+Document	            Document with deferral requested
+Reason	                RM's request reason
+Expiry Date	            Defer until this date
+Creator Comments	    Text area to reply
+Action	                Accept / Reject
+
