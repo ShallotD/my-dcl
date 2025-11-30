@@ -101,26 +101,55 @@ You already have this — we can enhance later.
 ________________________________________
 🟩 2. MyQueue.jsx
 This page is ONLY for Creator’s incoming work.
+These are DCLs submitted by RM and requiring the Creator’s review.
 It will have two sections:
 ________________________________________
-SECTION A — CURRENT QUEUE
+A. Current Queue (from RM)
 ➡️ Items submitted by RM
 Status = pending_creator_review
 Creator sees:
 •	Customer No
 •	Workstep
 •	RM Uploads
-•	Checklist designed earlier
-•	Time of submission
+•   RM comments
+•	Checklist documents uploaded 
 •	Button: Review → opens CreatorReview page
+
+✔ Actions:
+
+Approve per document
+
+Reject per document (give comment)
+
+Return to RM
+
+Submit to Checker
 ________________________________________
-SECTION B — PREVIOUS QUEUE
+B. Previous Queue (returned by Checker)
 ➡️ Items declined by Checker
 Status = returned_by_checker
 Creator must re-evaluate:
-•	Possibly re-send to RM
-•	Update checklist
-•	Add missing information
+
+✔ Must show:
+
+Checker comments
+
+Rejected documents
+
+Reason for decline
+
+
+•	Button: Review → opens CreatorReview page
+
+✔ Actions:
+
+Fix or request RM to upload again
+
+Approve again
+
+Resubmit to Checker
+
+
 ________________________________________
 Additionally:
 ✔️ Auto-load all checklist items as originally created

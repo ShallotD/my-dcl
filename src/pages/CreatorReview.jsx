@@ -30,6 +30,7 @@ const CreatorReview = () => {
   const location = useLocation();
 
   const checklist = location.state?.checklist || null;
+
   const [documents, setDocuments] = useState(checklist?.documents || []);
   const [rejectModal, setRejectModal] = useState({
     visible: false,
@@ -44,8 +45,8 @@ const CreatorReview = () => {
           Checklist not found — invalid ID ({checklistId})
         </Text>
         <br />
-        <Button style={{ marginTop: 16 }} onClick={() => navigate(-1)}>
-          Go Back
+        <Button style={{ marginTop: 16 }} onClick={() => navigate("/MyQueue")}>
+          Go Back to My Queue
         </Button>
       </div>
     );
@@ -70,7 +71,7 @@ const CreatorReview = () => {
 
   const confirmReject = () => {
     const { docName, reason } = rejectModal;
-    if (!reason) {
+    if (!reason.trim()) {
       message.error("Please provide a reason for rejection");
       return;
     }
@@ -81,23 +82,24 @@ const CreatorReview = () => {
 
   const handleReturnToRM = () => {
     setDocuments((prev) =>
-      prev.map((d) => (d.status !== "Approved" ? { ...d, status: "Returned" } : d))
+      prev.map((d) =>
+        d.status !== "Approved" ? { ...d, status: "Returned" } : d
+      )
     );
     message.warning("Checklist returned to RM for correction.");
-    navigate("/myqueue");
+    navigate("/MyQueue");
   };
 
   const handleForwardToChecker = () => {
-    const pending = documents.filter((d) => d.status !== "Approved");
-    if (pending.length > 0) {
+    const notApprovedDocs = documents.filter((d) => d.status !== "Approved");
+    if (notApprovedDocs.length > 0) {
       message.error("Cannot forward — all documents must be approved.");
       return;
     }
     message.success("Checklist forwarded to Checker.");
-    navigate("/myqueue");
+    navigate("/MyQueue");
   };
 
-  // Table columns definition
   const columns = [
     {
       title: "Document",
@@ -156,26 +158,25 @@ const CreatorReview = () => {
     },
   ];
 
-  // Row selection config (checkboxes)
-  const rowSelection = {
-    selectedRowKeys: [],
-    // Optional: add onChange if you want to track selections
-  };
-
   return (
     <div style={{ padding: 24, maxWidth: 1000, margin: "auto" }}>
-      <Button onClick={() => navigate(-1)} style={{ marginBottom: 24 }}>
-        Back
+      <Button onClick={() => navigate("/MyQueue")} style={{ marginBottom: 24 }}>
+        ← Back to My Queue
       </Button>
 
       <Title level={3}>Review Checklist</Title>
-      <Text strong style={{ fontSize: 18 }}>
-        {checklist.applicantName}
-      </Text>
-      <br />
-      <Text type="secondary" style={{ fontSize: 16 }}>
-        {checklist.loanType}
-      </Text>
+
+      <Space direction="vertical" size="small" style={{ marginBottom: 16 }}>
+        <Text strong style={{ fontSize: 18 }}>
+          Customer Name: {checklist.applicantName}
+        </Text>
+        <Text type="secondary" style={{ fontSize: 16 }}>
+          Product: {checklist.loanType}
+        </Text>
+        <Text type="secondary" style={{ fontSize: 14 }}>
+          Customer No: {checklist.loanNo} | DCL No: {checklist._id.toUpperCase()}
+        </Text>
+      </Space>
 
       <Divider />
 
@@ -184,7 +185,6 @@ const CreatorReview = () => {
         columns={columns}
         rowKey="name"
         pagination={false}
-        rowSelection={rowSelection}
       />
 
       <Divider />
@@ -199,7 +199,7 @@ const CreatorReview = () => {
       </Space>
 
       <Modal
-        title={`Reject ${rejectModal.docName}`}
+        title={`Reject "${rejectModal.docName}"`}
         open={rejectModal.visible}
         onOk={confirmReject}
         onCancel={() => setRejectModal({ visible: false, docName: "", reason: "" })}
@@ -220,3 +220,4 @@ const CreatorReview = () => {
 };
 
 export default CreatorReview;
+
