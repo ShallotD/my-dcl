@@ -1,194 +1,226 @@
 // src/pages/Active.jsx
 import React, { useState, useMemo } from "react";
-import { Table, Tag, Input, Space, Button, Drawer, Typography } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Tag,
+  Input,
+  Select,
+  Space,
+  Progress,
+  Drawer,
+  Typography,
+} from "antd";
 
 const { Search } = Input;
-const { Title, Text } = Typography;
+const { Text, Title } = Typography;
 
-// ---------------- MOCK DATA ----------------
-const activeChecklistsMock = [
+// 🟦 MOCK DATA
+const MOCK_ACTIVE = [
   {
-    id: "LN2001",
-    customerName: "Samuel Kariuki",
-    loanType: "Mortgage",
-    totalDocs: 5,
+    _id: "A1",
+    customerNo: "458921",
+    dclNo: "DCL-10001",
+    customerName: "John Doe",
+    product: "Personal Loan",
+    progress: 70,
+    status: "Pending Checker",
+    rm: "Brian",
+    lastUpdated: "2025-11-20 10:24 AM",
     checklist: [
       { name: "Employment Letter", status: "Pending RM" },
-      { name: "Bank Statement", status: "Pending RM" },
-      { name: "Property Deed", status: "Pending RM" },
+      { name: "Bank Statement", status: "Approved" },
       { name: "ID Copy", status: "Pending RM" },
-      { name: "Address Proof", status: "Pending RM" },
     ],
-    rm: "Anne W.",
-    createdOn: "2025-11-20",
   },
   {
-    id: "LN2002",
-    customerName: "Jane Wanjiru",
-    loanType: "SME Loan",
-    totalDocs: 4,
+    _id: "A2",
+    customerNo: "772194",
+    dclNo: "DCL-10002",
+    customerName: "Mary Wanjiru",
+    product: "Home Loan",
+    progress: 45,
+    status: "Incomplete",
+    rm: "Sarah",
+    lastUpdated: "2025-11-21 03:40 PM",
     checklist: [
       { name: "CR12", status: "Pending RM" },
-      { name: "KRA Pin", status: "Pending RM" },
-      { name: "Bank Statement", status: "Pending RM" },
-      { name: "Invoices", status: "Pending RM" },
+      { name: "KRA Pin", status: "Incomplete" },
     ],
-    rm: "Peter K.",
-    createdOn: "2025-11-21",
   },
   {
-    id: "LN2003",
-    customerName: "David Mwangi",
-    loanType: "Car Loan",
-    totalDocs: 3,
+    _id: "A3",
+    customerNo: "993015",
+    dclNo: "DCL-10003",
+    customerName: "David Kimani",
+    product: "Credit Card",
+    progress: 90,
+    status: "Returned by Checker",
+    rm: "Brian",
+    lastUpdated: "2025-11-22 11:15 AM",
+    checklist: [
+      { name: "Credit Application", status: "Returned by Checker" },
+      { name: "ID Copy", status: "Approved" },
+    ],
+  },
+  {
+    _id: "A4",
+    customerNo: "551002",
+    dclNo: "DCL-10004",
+    customerName: "Linet Kariuki",
+    product: "Car Loan",
+    progress: 60,
+    status: "Pending RM",
+    rm: "Tom",
+    lastUpdated: "2025-11-23 08:00 AM",
     checklist: [
       { name: "Driver's License", status: "Pending RM" },
       { name: "Insurance Certificate", status: "Pending RM" },
-      { name: "Loan Agreement", status: "Pending RM" },
+      { name: "Loan Agreement", status: "Approved" },
     ],
-    rm: "Grace N.",
-    createdOn: "2025-11-22",
-  },
-  {
-    id: "LN2004",
-    customerName: "Catherine Otieno",
-    loanType: "Personal Loan",
-    totalDocs: 4,
-    checklist: [
-      { name: "Passport", status: "Pending RM" },
-      { name: "Salary Slip", status: "Pending RM" },
-      { name: "Bank Statement", status: "Pending RM" },
-      { name: "Utility Bill", status: "Pending RM" },
-    ],
-    rm: "David K.",
-    createdOn: "2025-11-23",
-  },
-  {
-    id: "LN2005",
-    customerName: "Brian Njoroge",
-    loanType: "Business Loan",
-    totalDocs: 5,
-    checklist: [
-      { name: "Business Registration", status: "Pending RM" },
-      { name: "CR12", status: "Pending RM" },
-      { name: "KRA Pin", status: "Pending RM" },
-      { name: "Bank Statement", status: "Pending RM" },
-      { name: "Invoices", status: "Pending RM" },
-    ],
-    rm: "Anne W.",
-    createdOn: "2025-11-24",
   },
 ];
 
-const Active = () => {
-  const [search, setSearch] = useState("");
+// 🟩 COLOR MAP
+const STATUS_COLORS = {
+  "Pending Checker": "blue",
+  Incomplete: "orange",
+  "Returned by Checker": "red",
+  "Pending RM": "purple",
+  Approved: "green",
+};
+
+export default function Active() {
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [searchText, setSearchText] = useState("");
   const [openDrawer, setOpenDrawer] = useState(false);
   const [selectedChecklist, setSelectedChecklist] = useState(null);
 
-  // ---------------- FILTER LOGIC ----------------
-  const filtered = useMemo(() => {
-    const s = search.toLowerCase();
-    return activeChecklistsMock.filter(
-      (item) =>
-        item.customerName.toLowerCase().includes(s) ||
-        item.id.toLowerCase().includes(s)
-    );
-  }, [search]);
+  const filteredData = useMemo(() => {
+    return MOCK_ACTIVE.filter((row) => {
+      const matchesSearch =
+        row.customerName.toLowerCase().includes(searchText.toLowerCase()) ||
+        row.customerNo.includes(searchText) ||
+        row.dclNo.toLowerCase().includes(searchText.toLowerCase());
 
-  // ---------------- TABLE COLUMNS ----------------
+      const matchesStatus =
+        statusFilter === "All" || row.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchText, statusFilter]);
+
   const columns = [
     {
-      title: "Loan No.",
-      dataIndex: "id",
-      width: 120,
+      title: "Customer No",
+      dataIndex: "customerNo",
+      key: "customerNo",
     },
     {
-      title: "Customer",
+      title: "DCL No",
+      dataIndex: "dclNo",
+      key: "dclNo",
+    },
+    {
+      title: "Customer Name",
       dataIndex: "customerName",
-      width: 150,
+      key: "customerName",
     },
     {
-      title: "Loan Type",
-      dataIndex: "loanType",
-      width: 130,
-      render: (t) => <Tag color="purple">{t}</Tag>,
+      title: "Product",
+      dataIndex: "product",
+      key: "product",
     },
     {
-      title: "Documents Pending RM",
-      width: 160,
-      render: (_, row) => (
-        <Tag color="orange">
-          {row.checklist.filter((d) => d.status === "Pending RM").length} /{" "}
-          {row.totalDocs || row.checklist.length}
-        </Tag>
+      title: "Progress",
+      dataIndex: "progress",
+      key: "progress",
+      render: (value) => (
+        <Progress percent={value} size="small" status="active" />
+      ),
+    },
+    {
+      title: "Status",
+      dataIndex: "status",
+      key: "status",
+      render: (value) => (
+        <Tag color={STATUS_COLORS[value] || "default"}>{value}</Tag>
       ),
     },
     {
       title: "RM",
       dataIndex: "rm",
-      width: 120,
+      key: "rm",
     },
     {
-      title: "Created On",
-      dataIndex: "createdOn",
-      width: 130,
-    },
-    {
-      title: "Action",
-      width: 110,
-      render: (_, row) => (
-        <Button
-          size="small"
-          icon={<EyeOutlined />}
-          onClick={() => {
-            setSelectedChecklist(row);
-            setOpenDrawer(true);
-          }}
-        >
-          View
-        </Button>
-      ),
+      title: "Last Updated",
+      dataIndex: "lastUpdated",
+      key: "lastUpdated",
     },
   ];
 
   return (
-    <div style={{ padding: 16 }}>
-      <Title level={4}>Active Checklists (Awaiting RM Action)</Title>
+    <div style={{ padding: "24px" }}>
+      <h2 style={{ marginBottom: "16px" }}>Active Checklists</h2>
 
-      <Space style={{ marginBottom: 12 }}>
+      {/* Filters */}
+      <Space style={{ marginBottom: 16 }}>
         <Search
-          placeholder="Search by Loan / Customer"
+          placeholder="Search by Customer, DCL No..."
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ width: 260 }}
           allowClear
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ width: 250 }}
         />
+
+        <Select
+          value={statusFilter}
+          style={{ width: 200 }}
+          onChange={(value) => setStatusFilter(value)}
+        >
+          <Select.Option value="All">All Statuses</Select.Option>
+          <Select.Option value="Pending Checker">Pending Checker</Select.Option>
+          <Select.Option value="Incomplete">Incomplete</Select.Option>
+          <Select.Option value="Returned by Checker">
+            Returned by Checker
+          </Select.Option>
+          <Select.Option value="Pending RM">Pending RM</Select.Option>
+        </Select>
       </Space>
 
+      {/* Table */}
       <Table
-        size="small"
         columns={columns}
-        dataSource={filtered}
-        rowKey="id"
-        pagination={{ pageSize: 6 }}
+        dataSource={filteredData}
+        rowKey="_id"
+        pagination={{ pageSize: 5 }}
+        onRow={(record) => ({
+          onClick: () => {
+            setSelectedChecklist(record);
+            setOpenDrawer(true);
+          },
+          style: { cursor: "pointer" },
+        })}
       />
 
-      {/* ---------------- DRAWER WITH CHECKLIST DETAILS ---------------- */}
+      {/* Details Drawer */}
       <Drawer
         open={openDrawer}
         width={420}
         onClose={() => setOpenDrawer(false)}
-        title={`Checklist – ${selectedChecklist?.customerName}`}
+        title={`Checklist – ${selectedChecklist?.customerName || ""}`}
       >
         {selectedChecklist && (
           <>
-            <Text strong>Loan Number:</Text> {selectedChecklist.id}
+            <Text strong>Customer No:</Text> {selectedChecklist.customerNo}
             <br />
-            <Text strong>Loan Type:</Text> {selectedChecklist.loanType}
+            <Text strong>DCL No:</Text> {selectedChecklist.dclNo}
             <br />
-            <Text strong>Created On:</Text> {selectedChecklist.createdOn}
+            <Text strong>Customer Name:</Text> {selectedChecklist.customerName}
+            <br />
+            <Text strong>Product:</Text> {selectedChecklist.product}
             <br />
             <Text strong>RM:</Text> {selectedChecklist.rm}
+            <br />
+            <Text strong>Last Updated:</Text> {selectedChecklist.lastUpdated}
 
             <Title level={5} style={{ marginTop: 15 }}>
               Documents Pending RM Action
@@ -197,10 +229,18 @@ const Active = () => {
             {selectedChecklist.checklist.map((doc) => (
               <div
                 key={doc.name}
-                className="flex justify-between py-1 border-b text-sm"
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  padding: "6px 0",
+                  borderBottom: "1px solid #f0f0f0",
+                  fontSize: "0.9rem",
+                }}
               >
                 <span>{doc.name}</span>
-                <Tag color={doc.status === "Pending RM" ? "orange" : "gray"}>
+                <Tag
+                  color={doc.status === "Pending RM" ? "orange" : "gray"}
+                >
                   {doc.status}
                 </Tag>
               </div>
@@ -210,6 +250,4 @@ const Active = () => {
       </Drawer>
     </div>
   );
-};
-
-export default Active;
+}
