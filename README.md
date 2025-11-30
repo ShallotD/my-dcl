@@ -203,3 +203,26 @@ Expiry Date	            Defer until this date
 Creator Comments	    Text area to reply
 Action	                Accept / Reject
 
+
+6️⃣ Reports.jsx
+
+This page provides a reporting layer for Creator.
+
+✔ Reports include:
+A. Post-approval deferrals
+
+(Deferrals made AFTER the DCL was fully completed)
+
+Searchable by:
+
+Customer No
+
+Workstep
+
+Date range
+
+B. Pending approval deferrals
+
+Same list from Deferrals page but non-actionable.
+
+C. All DCLs — regardless of status
